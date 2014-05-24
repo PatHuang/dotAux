@@ -45,28 +45,7 @@ EXTRA_SCRIPTS += 			\
 	at/m4sh/path			\
 	at/m4sh/logfd
 
-EXTRA_DIST += 			\
-	at/m4sugar/dumpdef.as	\
-	at/m4sugar/subst.as	\
-	at/m4sugar/stack_foreach.as	\
-	at/m4sugar/defn.as	\
-	at/m4sugar/warn.as	\
-	at/m4sh/logfd.as	\
-	at/m4sh/echo.as		\
-	at/m4sh/path.as		\
-	at/m4sh/config_shell.as	\
-	at/m4sh/help_str.as	\
-	at/m4sh/lineno.as	\
-	at/m4sh/box.as		\
-	at/m4sh/var.as		\
-	at/m4sh/ver_comp.as	\
-	at/m4sh/warn_error.as	\
-	at/m4sh/set_catfile.as	\
-	at/m4sh/me.as		\
-	at/m4sh/dir_basename.as	\
-	at/m4sh/for.as	\
-	at/m4sh/shell_fn.as	\
-	at/m4sh/require.as
+EXTRA_DIST += at
 
 BUILT_SOURCES += at/m4sh/placeholder
 
