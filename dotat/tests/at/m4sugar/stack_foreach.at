@@ -1,0 +1,61 @@
+
+## ------------------ ##
+## m4_stack_foreach.  ##
+## ------------------ ##
+
+AT_SETUP([m4@&t@_stack])
+
+AT_KEYWORDS([m4@&t@_stack_foreach m4@&t@_stack_foreach_lifo])
+AT_KEYWORDS([m4@&t@_stack_foreach_sep m4@&t@_stack_foreach_sep_lifo])
+AT_KEYWORDS([m4@&t@_copy m4@&t@_n])
+
+# Test the semantics of macros to walk stacked macro definitions.
+AT_CHECK_M4SUGAR_TEXT([[dnl
+m4_pushdef([abc], [def])dnl
+m4_pushdef([abc], [ghi])dnl
+m4_pushdef([abc], [jkl])dnl
+m4_stack_foreach([abc], [m4_n])
+abc
+m4_stack_foreach_lifo([abc], [m4_n])
+m4_stack_foreach([abc], [m4_n])
+m4_copy([abc], [foo])dnl
+m4_stack_foreach([foo], [m4_n])
+m4_stack_foreach_lifo([foo], [m4_n])
+m4_stack_foreach_sep([abc], [ m4_index([abcdefghijkl],], [)])
+m4_define([colon], [:])m4_define([lt], [<])m4_define([gt], [>])dnl
+m4_stack_foreach_sep_lifo([abc], [lt], [gt], [colon])
+m4_pushdef([xyz], [123])dnl
+m4_pushdef([xyz], [456])dnl
+m4_define([doit], [[$1](m4_stack_foreach_sep([xyz], [m4_dquote(], [)], [,]))
+])dnl
+m4_stack_foreach([abc], [doit])]],
+[[def
+ghi
+jkl
+
+jkl
+jkl
+ghi
+def
+
+def
+ghi
+jkl
+
+def
+ghi
+jkl
+
+jkl
+ghi
+def
+
+ 3 6 9
+<jkl>:<ghi>:<def>
+def([123],[456])
+ghi([123],[456])
+jkl([123],[456])
+]])
+
+AT_CLEANUP
+

@@ -1,0 +1,59 @@
+
+## ------------ ##
+## m4_dumpdef.  ##
+## ------------ ##
+
+AT_SETUP([m4@&t@_dumpdef])
+
+AT_KEYWORDS([m4@&t@_dumpdefs])
+
+# Ensure that m4sugar dies when dereferencing undefined macros.
+
+AT_DATA_M4SUGAR([script.4s],
+[[m4_define([good], [yep])
+m4_dumpdef([good], [oops])
+]])
+
+AT_CHECK_M4SUGAR([-o-], 1, [], [stderr])
+AT_CHECK([grep '^good:	\[[yep\]]$' stderr], [0], [ignore])
+AT_CHECK([grep 'm4@&t@_dumpdef: undefined.*oops' stderr], [0], [ignore])
+
+# Check that pushdef stacks can be dumped.
+AT_CHECK_M4SUGAR_TEXT([[m4_divert_push([KILL])
+m4_pushdef([a], [1])
+m4_pushdef([a], [2])
+m4_dumpdef([a])
+m4_dumpdefs([oops], [a])
+m4_divert_pop([KILL])dnl
+]], [],
+[[a:	[2]
+a:	[2]
+a:	[1]
+]])
+
+# Check behavior when dumping builtins.  Unfortunately, when using M4 1.4.x
+# (or more precisely, when __m4_version__ is undefined), builtins get
+# flattened to an empty string.  It takes M4 1.6 to work around this.
+AT_DATA_M4SUGAR([script.4s],
+[[m4_ifdef([__m4_version__], [_m4_undefine([__m4_version__])])
+m4_init
+m4_dumpdef([m4_define])
+]])
+
+AT_CHECK_M4SUGAR([-o-], [0], [],
+[[m4_define:	[]
+]])
+
+AT_DATA_M4SUGAR([script.4s],
+[[m4_init
+m4_ifdef([__m4_version__],
+[m4_dumpdef([m4_define])],
+[m4_errprintn([m4_define:	<define>])])
+]])
+
+AT_CHECK_M4SUGAR([-o-], [0], [],
+[[m4_define:	<define>
+]])
+
+AT_CLEANUP
+

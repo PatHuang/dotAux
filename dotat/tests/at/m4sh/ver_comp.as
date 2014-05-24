@@ -1,0 +1,41 @@
+m4_include([dmeta/das.m4])
+
+AS_INIT
+
+## -------------------- ##
+## AS_VERSION_COMPARE.  ##
+## -------------------- ##
+
+# Three-way version comparison.
+
+m4_define([VERSION_COMPARE_TEST],
+[
+	AS_VERSION_COMPARE([$1], [$3], [result='<'], [result='='], [result='>'])
+	test "X$result" = "X$2" ||
+		AS_ERROR([version $1 $result $3; should be $1 $2 $3])
+	m4_if([$1], <, [
+		AS_VERSION_COMPARE([$3], [$1], [result='<'], [result='='], [result='>'])
+		test "X$result" = "X>" ||
+			AS_ERROR([version $3 $result $1; should be $3 > $1])
+	])
+
+])dnl VERSION_COMPARE_TEST
+
+VERSION_COMPARE_TEST([], =, [])
+VERSION_COMPARE_TEST([1.0], =, [1.0])
+VERSION_COMPARE_TEST([alpha-1.0], =, [alpha-1.0])
+
+# These tests are taken from libc/string/tst-svc.expect.
+tst_svc_expect='
+  000 001 00 00a 01 01a 0 0a 2.8 2.8-0.4 20 21 22 212 CP037 CP345 CP1257
+  foo foo-0.4 foo-0.4a foo-0.4b foo-0.5 foo-0.10.5 foo-3.01 foo-3.0
+  foo-3.0.0 foo-3.0.1 foo-3.2 foo-3.10 foo00 foo0
+'
+test1=''
+for test2 in $tst_svc_expect; do
+	VERSION_COMPARE_TEST([$test1], <, [$test2])
+	test1=$test2
+done
+
+AS_EXIT
+

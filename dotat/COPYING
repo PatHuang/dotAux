@@ -1,0 +1,31 @@
+
+dotAux (.AUX) Project - dotAux Normal Distro
+
+README
+===============================
+--Part 1: dotAux Source Code Copyright and License
+--Part 2: dotAux Getting Started
+===============================
+
+===============================
+--Part 1: Copyright and License
+===============================
+Copyright (c) 2009-2014 The dotAux Project. All rights reserved.
+
+Sub projects:
+dotAT (.AT) - Most tests on tests/ subfolder are taken from autoconf-2.69/tests/, so license kept no changes.
+dotAux (.AUX) - MIT License for most code; dotAux's M4 macros.
+
+See COPYING and Macros.COPYING for the details.
+
+
+===============================
+--Part 2: dotAux Getting Started
+===============================
+
+dotAux portable scripts intend for use by convention of ./configure && make && make install. 
+
+See INSTALL
+
+TBD
+
