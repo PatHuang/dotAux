@@ -1,0 +1,397 @@
+# Test suite for dotAux libs.                         -*- Autotest -*-
+#---------------------------------------
+#
+# Copyright (c) 2009-2014 The dotAux project.
+#
+# This file is a part of the dotAux project, and is 
+# copyrighted by Pat Huang and/or others who actually
+# wrote it.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+# See also
+# <http://www.opensource.org/licenses/mit-license.php>
+#
+# Contact the project <staff.effo@gmail.com> or 
+# contact Pat Huang <pat.sh.cn@gmail.com>
+#
+#---------------------------------------
+
+AT_BANNER([Test dotAux m4 lib])
+
+AT_SETUP([dotAux lib including])
+# lib got included in local.at
+AT_KEYWORDS([include])
+AS_MESSAGE(DAS_EXEC([pwd]))
+dat_fn_env "testlib"
+
+DAT_CHK([pwd])
+
+AT_CLEANUP
+
+AT_SETUP(['DAT@&t@_DATA'])
+AT_KEYWORDS([m4sh])
+DAT_DATA_M4SH([script.as],
+[[
+m4_include([dmeta/das.m4])
+AS_INIT
+AS_EXIT([0])
+]])
+DAT_CHK_M4SH([-I DAT_MYLIBDIR])
+DAT_CHK([./script])
+
+AT_CLEANUP
+
+AT_SETUP([Try use AT@&t@_CHECK])
+AT_KEYWORDS([m4sh])
+DAT_DATA_M4SH([script.as],
+[[
+AS_INIT
+AS_ECHO(['Hello World!'])
+AS_EXIT([0])
+]])
+DAT_CHK_M4SH([-I DAT_MYLIBDIR])
+AT_CHECK([./script], [0], [Hello World!
+])
+
+AT_CLEANUP
+
+AT_SETUP(['DAS@&t@_LOC_IN_PATH'])
+AT_KEYWORDS([m4sh])
+DAT_DATA_M4SH([script.as],
+[[
+m4_include([dmeta/das.m4])
+AS_INIT
+DAS_SHELL_FN
+das_fn_loc_in_path "sh"
+AS_EXIT([0])
+]])
+DAT_CHK_M4SH([-I DAT_MYLIBDIR])
+DAT_CHK([./script])
+
+AT_CLEANUP
+
+AT_SETUP([UN/DEF_VAR - Obsolete])
+AT_KEYWORDS([m4sh])
+DAT_DATA_M4SH([script.as],
+[[
+m4_include([dmeta/das.m4])
+AS_INIT
+
+DAS_DEF_VAR([var1], [2])
+AS_ECHO([v1=2,var1=$var1,v2=,var2=$var2])
+DAS_DEF_VAR([var2], [2])
+AS_ECHO([v1=2,var1=$var1,v2=2,var2=$var2])
+
+DAS_DEF_VAR([var1], [3])
+AS_ECHO([v1=3,var1=$var1,v2=2,var2=$var2])
+DAS_DEF_VAR([var2], [3])
+AS_ECHO([v1=3,var1=$var1,v2=3,var2=$var2])
+
+DAS_UNDEF_VAR([var1])
+AS_ECHO([v1=2,var1=$var1,v2=3,var2=$var2])
+DAS_UNDEF_VAR([var2])
+AS_ECHO([v1=2,var1=$var1,v2=2,var2=$var2])
+
+DAS_UNDEF_VAR([var1])
+AS_ECHO([v1=,var1=$var1,v2=2,var2=$var2])
+DAS_UNDEF_VAR([var2])
+AS_ECHO([v1=,var1=$var1,v2=,var2=$var2])
+
+AS_EXIT([0])
+]])
+DAT_CHK_M4SH([-I DAT_MYLIBDIR])
+AT_CHECK([./script], [0], [dnl
+v1=2,das_def_var1=2,v2=,var2=
+v1=2,das_def_var1=2,v2=2,das_def_var2=2
+v1=3,das_def_var1=3,v2=2,das_def_var2=2
+v1=3,das_def_var1=3,v2=3,das_def_var2=3
+v1=2,das_def_var1=3,v2=3,das_def_var2=3
+v1=2,das_def_var1=3,v2=2,das_def_var2=3
+v1=,var1=,v2=2,das_def_var2=3
+v1=,var1=,v2=,var2=
+])
+
+AT_CLEANUP
+
+AT_SETUP(['dirname/basename'])
+AT_KEYWORDS([m4sh])
+DAT_DATA_M4SH([script.as],
+[[
+m4_include([dmeta/das.m4])
+AS_INIT
+DAS_SHELL_FN
+AS_VAR_SET([p], [./abc/def/////])
+das_fn_dirname "$p"
+das_fn_basename "$p"
+AS_EXIT([0])
+]])
+DAT_CHK_M4SH([-I DAT_MYLIBDIR])
+AT_CHECK([./script], [0], [dnl
+./abc
+def
+])
+
+AT_CLEANUP
+
+AT_SETUP([mydir "./"])
+AT_KEYWORDS([m4sh])
+DAT_DATA_M4SH([script.as],
+[[
+m4_include([dmeta/das.m4])
+AS_INIT
+DAS_SHELL_FN
+das_fn_mydir
+AS_EXIT([0])
+]])
+DAT_CHK_M4SH([-I DAT_MYLIBDIR])
+(#subshell local vars
+AS_VAR_SET([output], $(./script))
+AS_MESSAGE([Output: '$output'])
+AS_VAR_IF([output], [.],
+[
+	DAT_CHK([:])
+],
+[
+	AT_FAIL_IF([:])
+])
+)
+
+AT_CLEANUP
+
+AT_SETUP([mydir "./abc/"])
+AT_KEYWORDS([m4sh])
+DAT_DATA_M4SH([script.as],
+[[
+m4_include([dmeta/das.m4])
+AS_INIT
+DAS_SHELL_FN
+das_fn_mydir
+AS_EXIT([0])
+]])
+DAT_CHK_M4SH([-I DAT_MYLIBDIR])
+mkdir abc
+cp -f script abc/
+(#subshell local vars
+AS_VAR_SET([output], $(./abc/script))
+AS_MESSAGE([Output: '$output'])
+AS_VAR_IF([output], [./abc],
+[
+	DAT_CHK([:])
+],
+[
+	AT_FAIL_IF([:])
+])
+)
+rm -rf abc
+
+AT_CLEANUP
+
+AT_SETUP([locself "pwd/"])
+AT_KEYWORDS([m4sh])
+DAT_DATA_M4SH([script.as],
+[[
+m4_include([dmeta/das.m4])
+AS_INIT
+DAS_SHELL_FN
+das_fn_locself
+AS_EXIT([0])
+]])
+DAT_CHK_M4SH([-I DAT_MYLIBDIR])
+(#subshell local vars
+AS_VAR_SET([output], $(./script))
+AS_VAR_IF([output], [DAS_EXEC([pwd])/script],
+[
+	DAT_CHK([:])
+],
+[
+	AT_FAIL_IF([:])
+])
+)
+
+AT_CLEANUP
+
+AT_SETUP([locself "pwd/abc/"])
+AT_KEYWORDS([m4sh])
+DAT_DATA_M4SH([script.as],
+[[
+m4_include([dmeta/das.m4])
+AS_INIT
+DAS_SHELL_FN
+das_fn_locself
+AS_EXIT([0])
+]])
+DAT_CHK_M4SH([-I DAT_MYLIBDIR])
+mkdir abc
+cp -f script abc/
+(#subshell local vars
+AS_VAR_SET([output], $(./abc/script))
+AS_VAR_IF([output], [DAS_EXEC([pwd])/abc/script],
+[
+	DAT_CHK([:])
+],
+[
+	AT_FAIL_IF([:])
+])
+)
+rm -rf abc
+
+AT_CLEANUP
+
+AT_SETUP([Intro Self])
+AT_KEYWORDS([m4sh])
+DAT_DATA_M4SH([script.as],
+[[
+m4_include([dmeta/das.m4])
+AS_INIT
+DAS_SHELL_FN
+DAS_INTRO_SELF([1.0])
+AS_EXIT([0])
+]])
+DAT_CHK_M4SH([-I DAT_MYLIBDIR])
+(#subshell local vars
+AS_VAR_SET([output], $(./script))
+AS_VAR_IF([output], ["I'm script (v1.0) on DAS_EXEC([pwd]), working on DAS_EXEC([pwd])!"],
+[
+	DAT_CHK([:])
+],
+[
+	AT_FAIL_IF([:])
+])
+)
+
+AT_CLEANUP
+
+AT_SETUP([Trim])
+AT_KEYWORDS([m4sh])
+DAT_DATA_M4SH([script.as],
+[[
+m4_include([dmeta/das.m4])
+AS_INIT
+DAS_SHELL_FN
+
+das_fn_str_trim "  value  "
+das_fn_str_trim "	 value  "
+das_fn_str_trim " 	 value  "
+das_fn_str_trim " 	value  "
+das_fn_str_trim " value	 "
+das_fn_str_trim " value 	 "
+das_fn_str_trim " value 	"
+
+AS_EXIT([0])
+]])
+DAT_CHK_M4SH([-I DAT_MYLIBDIR])
+AT_CHECK([./script], [0], [dnl
+value
+value
+value
+value
+value
+value
+value
+])
+
+AT_CLEANUP
+
+AT_SETUP([Parse Value])
+AT_KEYWORDS([m4sh])
+DAS_DATA([input], [
+Key1:	Val1  	
+Key2 = 		Val2.0	  	Val2.1  	  
+])
+DAT_DATA_M4SH([script.as],
+[[
+m4_include([dmeta/das.m4])
+AS_INIT
+DAS_SHELL_FN
+
+(#subshell local vars
+AS_VAR_SET([KEY], ["Key"])
+AS_VAR_SET([VAL], ["Val"])
+AS_VAR_SET([str])
+
+str="$KEY:$VAL"
+das_fn_str_parse_value "$str" "$KEY" ":"
+str="$KEY :$VAL"
+das_fn_str_parse_value "$str" "$KEY" ":"
+str="$KEY: $VAL"
+das_fn_str_parse_value "$str" "$KEY" ":"
+str="$KEY : $VAL"
+das_fn_str_parse_value "$str" "$KEY" ":"
+
+str="$KEY=$VAL"
+das_fn_str_parse_value "$str" "$KEY" "="
+str="$KEY =$VAL"
+das_fn_str_parse_value "$str" "$KEY" "="
+str="$KEY= $VAL"
+das_fn_str_parse_value "$str" "$KEY" "="
+str="$KEY = $VAL"
+das_fn_str_parse_value "$str" "$KEY" "="
+
+str="$KEY:=$VAL"
+das_fn_str_parse_value "$str" "$KEY" "="
+str="$KEY :=$VAL"
+das_fn_str_parse_value "$str" "$KEY" "="
+str="$KEY:= $VAL"
+das_fn_str_parse_value "$str" "$KEY" "="
+str="$KEY := $VAL"
+das_fn_str_parse_value "$str" "$KEY" "="
+
+str="$KEY=:$VAL"
+das_fn_str_parse_value "$str" "$KEY" "="
+str="$KEY =:$VAL"
+das_fn_str_parse_value "$str" "$KEY" "="
+str="$KEY=: $VAL"
+das_fn_str_parse_value "$str" "$KEY" "="
+str="$KEY =: $VAL"
+das_fn_str_parse_value "$str" "$KEY" "="
+
+das_fn_file_parse_value "input" "Key1"
+das_fn_file_parse_value "input" "Key2" "="
+
+)
+
+AS_EXIT([0])
+]])
+DAT_CHK_M4SH([-I DAT_MYLIBDIR])
+AT_CHECK([./script], [0], [dnl
+Val
+Val
+Val
+Val
+Val
+Val
+Val
+Val
+Val
+Val
+Val
+Val
+Val
+Val
+Val
+Val
+Val1
+Val2.0	  	Val2.1
+])
+
+rm -f input
+
+AT_CLEANUP
+
