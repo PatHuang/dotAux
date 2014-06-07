@@ -3,7 +3,7 @@ m4_include([dmeta/das.m4])
 
 AS_INIT
 
-DAS_COMPILE_M4([],[],
+DAS_COMPILE_M4([m4test], [],[],
 [[
 m4_divert_push([])
 
@@ -66,7 +66,11 @@ def([123],[456])
 ghi([123],[456])
 jkl([123],[456])
 
-]])dnl DAS_COMPILE_M4
+]],
+[],[AS_ERROR([code=$das_compile_status])]
+)
+
+rm -f m4test m4test.m4
 
 AS_EXIT
 

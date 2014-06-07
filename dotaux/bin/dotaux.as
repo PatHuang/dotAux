@@ -42,12 +42,12 @@
 #
 # @author Pat Huang
 #
-# @version v0.1r06
+# @version v0.1r08
 # @par ChangeLog:
 # @verbatim
 #  ver 0.1-
 #    r02-04, 2009dec03, Pat, finished this source file.
-#    r06, 2014apr27, Pat, updating due to new dotAux macros.
+#    r06-08, 2014apr27, Pat, updating due to new dotAux macros.
 # @endverbatim
 #-------------------------------------------------------------------
 
@@ -58,7 +58,7 @@ AS_INIT
 # Prepare shell functions from dotAux lib.
 DAS_SHELL_FN
 
-DAS_DEF_VAR([myversion], [0.1.0.6])
+DAS_DEF_VAR([myversion], [0.1.0.8])
 
 AS_FUNCTION_DESCRIBE([usage], [], [Help info of myself.])
 usage()
@@ -73,11 +73,13 @@ AS_HELP_STRING([[-a[da_folder]|--aux=da_folder]],
 [da_folder: Your local dotAux folder to store stuff from dotAux distro])
 AS_HELP_STRING([[-c|--clean]],
 [function clean, clear all and clear autotools generated files such as aclocal, etc. If not specified, default function is setup, to setup initial dotAux folder.])
+AS_HELP_STRING([[-k[namelist]|--keep=namelist]],
+[namelist: Dont' clear files or folders in namelist which looks like "name1,name2,name3..."])
 	])
 	# AS_MESSAGE
 }
 
-DAS_DEF_VAR([opts], DAS_EXEC([getopt -o hVa:c -l help -l version -l aux: -l clean -- "$@"]))
+DAS_DEF_VAR([opts], DAS_EXEC([getopt -o hVa:k:c -l help -l version -l aux: -l keep: -l clean -- "$@"]))
 DAS_DEF_VAR([code], [$?])
 DAS_STATUS_FAIL([$code], [
 	usage
@@ -89,6 +91,7 @@ eval set -- "$opts"
 
 # Default dotAux folder
 DAS_DEF_VAR([da_folder], [dotaux])
+DAS_DEF_VAR([kp_namelist])
 # Default function - setup
 # Available functions:
 # setup, setup dotAux
@@ -101,6 +104,7 @@ do
 		[-h|--help], [usage; AS_EXIT],
 		[-V|--version], [AS_ECHO(["$myversion"]); AS_EXIT],
 		[-a|--aux], [AS_VAR_SET([da_folder], [$2]); shift 2],
+		[-k|--keep], [AS_VAR_SET([kp_namelist], [$2]); shift 2],
 		[-c|--clean], [AS_VAR_SET([fn], [clean]); shift],
 		[--], [shift; break],
 		[
@@ -134,14 +138,15 @@ AS_IF([test -f "$metadir/da.conf"],
 # AS_IF
 
 DAS_DEF_VAR([myclient], DAS_EXEC([DAS_CLIENT]))
-AS_CASE([$fn],
-[setup], [
-	AS_MESSAGE([Function is setup...])
-	# Test and create da_folder
-	das_fn_chkdir "$metadir"
+
+AS_FUNCTION_DESCRIBE([do_copy], [], [Copy myself and meta data.])
+do_copy()
+{
 	AS_MESSAGE([Copy myself...])
 	cp -f "$das_myself" "$da_folder"/
 	cp -f "$das_myloc/damk" "$da_folder"/
+	cp -f "$das_myloc/daln" "$da_folder"/
+	cp -f "$das_myloc/dadlm" "$da_folder"/
 	AS_MESSAGE([Testing $da_folder/$das_me...])
 	AS_VAR_SET([opts], DAS_EXEC([./"$da_folder"/$das_me --version]))
 	AS_MESSAGE([Compare version "$opts" and "$myversion"...])
@@ -150,11 +155,60 @@ AS_CASE([$fn],
 		AS_ERROR([Test "$da_folder/$das_me" FAIL])
 	])
 	AS_MESSAGE([Copy metadata...])
-	cp -f "$das_myloc/../share/dotaux/ext/tap-driver.sh" "$da_folder"/
-	cp -f "$das_myloc/../share/dotaux/ext/ax_prefix_config_h.m4" "$da_folder"/
-	cp -f "$das_myloc/../share/dotaux/dmeta/das.m4" "$metadir"/
-	cp -f "$das_myloc/../share/dotaux/dmeta/dat.m4" "$metadir"/
+(#subshell local vars
+	AS_IF([test -f "$das_myloc/../share/dotaux/dmeta/das.m4"], [
+		AS_VAR_SET([path], ["$das_myloc/../share/dotaux/"])
+	],
+	[test -f "$das_myloc/../dotaux/dmeta/das.m4"], [
+		AS_VAR_SET([path], ["$das_myloc/../dotaux/"])
+	],
+	[
+		AS_ERROR([Cannot determine dotAux lib path.])
+	])
+	# AS_IF
+	AS_MESSAGE([Determined dotAux lib path '$path'.])
+	cp -f "$path/ext/tap-driver.sh" "$da_folder"/
+	cp -f "$path/dmeta/das.m4" "$metadir"/
+	cp -f "$path/dmeta/dac.m4" "$metadir"/
+	cp -f "$path/dmeta/dat.m4" "$metadir"/
+)
 	AS_MESSAGE([Prepared dotAux folder with meta subfolder: $metadir])
+}
+# do_copy
+
+AS_FUNCTION_DESCRIBE([clear_da], [], [Clear da_folder.])
+clear_da()
+{
+(#subshell local vars
+	AS_VAR_SET([found], DAS_EXEC([DAS_STR_MATCH([$kp_namelist], [$da_folder])]))
+	AS_IF([test x"$found" != x], [
+		AS_MESSAGE([Keep $da_folder])
+		cp -rf $da_folder $da_folder.tmp
+		rm -rf $da_folder/*
+		mv -f $da_folder.tmp/dmeta $da_folder/
+		mv -f $da_folder.tmp/tap-driver.sh $da_folder/
+		mv -f $da_folder.tmp/$das_me $da_folder/
+		mv -f $da_folder.tmp/damk $da_folder/
+		mv -f $da_folder.tmp/daln $da_folder/
+		mv -f $da_folder.tmp/dadlm $da_folder/
+		
+		rm -rf $da_folder.tmp
+	],
+	[
+		AS_MESSAGE([Don't keep $da_folder])
+		rm -rf $da_folder
+	])
+	# AS_IF
+)
+}
+# clear_da
+
+AS_CASE([$fn],
+[setup], [
+	AS_MESSAGE([Function is setup...])
+	# Test and create da_folder
+	das_fn_chkdir "$metadir"
+	do_copy
 
 	AS_MESSAGE([Testing local include path $das_pwd/$da_folder...])
 	DAS_NO_DIR([$das_pwd/$da_folder], [
@@ -167,15 +221,7 @@ AS_CASE([$fn],
 [clean], [
 	AS_MESSAGE([Function is clean...])
 	DAS_HAS_FILE([Makefile], [make clean; make distclean])
-	# clear da_folder
-	cp -rf $da_folder $da_folder.tmp
-	rm -rf $da_folder/*
-	mv -f $da_folder.tmp/dmeta $da_folder/
-	mv -f $da_folder.tmp/tap-driver.sh $da_folder/
-	mv -f $da_folder.tmp/ax_prefix_config_h.m4 $da_folder/
-	mv -f $da_folder.tmp/$das_me $da_folder/
-	
-	rm -rf $da_folder.tmp
+	clear_da
 
 	# clear generated stuff by autotools
 	rm -f aclocal.m4 configure >/dev/null 2>&1

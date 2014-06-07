@@ -38,6 +38,7 @@ AT_BANNER([Test dotAux m4 lib])
 AT_SETUP([dotAux lib including])
 # lib got included in local.at
 AT_KEYWORDS([include])
+DAT_SHELL_FN
 AS_MESSAGE(DAS_EXEC([pwd]))
 dat_fn_env "testlib"
 
@@ -45,54 +46,73 @@ DAT_CHK([pwd])
 
 AT_CLEANUP
 
-AT_SETUP(['DAT@&t@_DATA'])
-AT_KEYWORDS([m4sh])
-DAT_DATA_M4SH([script.as],
+AT_SETUP(['Compile m4sh'])
+AT_KEYWORDS([m4sh language])
+DAS_COMPILE_M4SH([m4shtest], [-I DAT_MYLIBDIR],
 [[
 m4_include([dmeta/das.m4])
-AS_INIT
-AS_EXIT([0])
-]])
-DAT_CHK_M4SH([-I DAT_MYLIBDIR])
-DAT_CHK([./script])
+]],
+[[
+AS_VAR_SET([m4shcode], [0])
+]],
+[DAT_CHK([./m4shtest])],
+[
+	AS_MESSAGE([code=$das_compile_status])
+	AT_FAIL_IF([:])
+])
+
+rm -f m4shtest*
 
 AT_CLEANUP
 
 AT_SETUP([Try use AT@&t@_CHECK])
-AT_KEYWORDS([m4sh])
-DAT_DATA_M4SH([script.as],
+AT_KEYWORDS([m4sh language])
+DAS_COMPILE_M4SH([m4shtest], [-I DAT_MYLIBDIR], [],
 [[
-AS_INIT
 AS_ECHO(['Hello World!'])
-AS_EXIT([0])
-]])
-DAT_CHK_M4SH([-I DAT_MYLIBDIR])
-AT_CHECK([./script], [0], [Hello World!
+AS_VAR_SET([m4shcode], [0])
+]],
+[
+	AT_CHECK([./m4shtest], [0], [Hello World!
 ])
+],
+[
+	AS_MESSAGE([code=$das_compile_status])
+	AT_FAIL_IF([:])
+])
+
+rm -f m4shtest*
 
 AT_CLEANUP
 
 AT_SETUP(['DAS@&t@_LOC_IN_PATH'])
-AT_KEYWORDS([m4sh])
-DAT_DATA_M4SH([script.as],
+AT_KEYWORDS([m4sh language])
+DAS_COMPILE_M4SH([m4shtest], [-I DAT_MYLIBDIR],
 [[
 m4_include([dmeta/das.m4])
-AS_INIT
+]],
+[[
 DAS_SHELL_FN
 das_fn_loc_in_path "sh"
-AS_EXIT([0])
-]])
-DAT_CHK_M4SH([-I DAT_MYLIBDIR])
-DAT_CHK([./script])
+AS_VAR_SET([m4shcode], [0])
+]],
+[DAT_CHK([./m4shtest])],
+[
+	AS_MESSAGE([code=$das_compile_status])
+	AT_FAIL_IF([:])
+])
+
+rm -f m4shtest*
 
 AT_CLEANUP
 
 AT_SETUP([UN/DEF_VAR - Obsolete])
-AT_KEYWORDS([m4sh])
-DAT_DATA_M4SH([script.as],
+AT_KEYWORDS([m4sh language])
+DAS_COMPILE_M4SH([m4shtest], [-I DAT_MYLIBDIR],
 [[
 m4_include([dmeta/das.m4])
-AS_INIT
+]],
+[[
 
 DAS_DEF_VAR([var1], [2])
 AS_ECHO([v1=2,var1=$var1,v2=,var2=$var2])
@@ -114,10 +134,10 @@ AS_ECHO([v1=,var1=$var1,v2=2,var2=$var2])
 DAS_UNDEF_VAR([var2])
 AS_ECHO([v1=,var1=$var1,v2=,var2=$var2])
 
-AS_EXIT([0])
-]])
-DAT_CHK_M4SH([-I DAT_MYLIBDIR])
-AT_CHECK([./script], [0], [dnl
+AS_VAR_SET([m4shcode], [0])
+]],
+[
+	AT_CHECK([./m4shtest], [0], [dnl
 v1=2,das_def_var1=2,v2=,var2=
 v1=2,das_def_var1=2,v2=2,das_def_var2=2
 v1=3,das_def_var1=3,v2=2,das_def_var2=2
@@ -127,163 +147,224 @@ v1=2,das_def_var1=3,v2=2,das_def_var2=3
 v1=,var1=,v2=2,das_def_var2=3
 v1=,var1=,v2=,var2=
 ])
+],
+[
+	AS_MESSAGE([code=$das_compile_status])
+	AT_FAIL_IF([:])
+])
+
+rm -f m4shtest*
 
 AT_CLEANUP
 
 AT_SETUP(['dirname/basename'])
-AT_KEYWORDS([m4sh])
-DAT_DATA_M4SH([script.as],
+AT_KEYWORDS([m4sh language])
+DAS_COMPILE_M4SH([m4shtest], [-I DAT_MYLIBDIR],
 [[
 m4_include([dmeta/das.m4])
-AS_INIT
+]],
+[[
 DAS_SHELL_FN
 AS_VAR_SET([p], [./abc/def/////])
 das_fn_dirname "$p"
 das_fn_basename "$p"
-AS_EXIT([0])
-]])
-DAT_CHK_M4SH([-I DAT_MYLIBDIR])
-AT_CHECK([./script], [0], [dnl
+AS_VAR_SET([m4shcode], [0])
+]],
+[
+	AT_CHECK([./m4shtest], [0], [dnl
 ./abc
 def
 ])
+],
+[
+	AS_MESSAGE([code=$das_compile_status])
+	AT_FAIL_IF([:])
+])
+
+rm -f m4shtest*
 
 AT_CLEANUP
 
 AT_SETUP([mydir "./"])
-AT_KEYWORDS([m4sh])
-DAT_DATA_M4SH([script.as],
+AT_KEYWORDS([m4sh language])
+DAS_COMPILE_M4SH([m4shtest], [-I DAT_MYLIBDIR],
 [[
 m4_include([dmeta/das.m4])
-AS_INIT
+]],
+[[
 DAS_SHELL_FN
 das_fn_mydir
-AS_EXIT([0])
-]])
-DAT_CHK_M4SH([-I DAT_MYLIBDIR])
+AS_VAR_SET([m4shcode], [0])
+]],
+[
 (#subshell local vars
-AS_VAR_SET([output], $(./script))
+AS_VAR_SET([output], $(./m4shtest))
 AS_MESSAGE([Output: '$output'])
 AS_VAR_IF([output], [.],
 [
 	DAT_CHK([:])
 ],
 [
+	AS_MESSAGE([mydir=$output])
 	AT_FAIL_IF([:])
 ])
 )
+],
+[
+	AS_MESSAGE([code=$das_compile_status])
+	AT_FAIL_IF([:])
+])
+
+rm -f m4shtest*
 
 AT_CLEANUP
 
 AT_SETUP([mydir "./abc/"])
-AT_KEYWORDS([m4sh])
-DAT_DATA_M4SH([script.as],
+AT_KEYWORDS([m4sh language])
+DAS_COMPILE_M4SH([m4shtest], [-I DAT_MYLIBDIR],
 [[
 m4_include([dmeta/das.m4])
-AS_INIT
+]],
+[[
 DAS_SHELL_FN
 das_fn_mydir
-AS_EXIT([0])
-]])
-DAT_CHK_M4SH([-I DAT_MYLIBDIR])
+AS_VAR_SET([m4shcode], [0])
+]],
+[
 mkdir abc
-cp -f script abc/
+cp -f m4shtest abc/
 (#subshell local vars
-AS_VAR_SET([output], $(./abc/script))
+AS_VAR_SET([output], $(./abc/m4shtest))
 AS_MESSAGE([Output: '$output'])
 AS_VAR_IF([output], [./abc],
 [
 	DAT_CHK([:])
 ],
 [
+	AS_MESSAGE([mydir=$output])
 	AT_FAIL_IF([:])
 ])
 )
 rm -rf abc
+],
+[
+	AS_MESSAGE([code=$das_compile_status])
+	AT_FAIL_IF([:])
+])
+
+rm -f m4shtest*
 
 AT_CLEANUP
 
 AT_SETUP([locself "pwd/"])
-AT_KEYWORDS([m4sh])
-DAT_DATA_M4SH([script.as],
+AT_KEYWORDS([m4sh language])
+DAS_COMPILE_M4SH([m4shtest], [-I DAT_MYLIBDIR],
 [[
 m4_include([dmeta/das.m4])
-AS_INIT
+]],
+[[
 DAS_SHELL_FN
 das_fn_locself
-AS_EXIT([0])
-]])
-DAT_CHK_M4SH([-I DAT_MYLIBDIR])
+AS_VAR_SET([m4shcode], [0])
+]],
+[
 (#subshell local vars
-AS_VAR_SET([output], $(./script))
-AS_VAR_IF([output], [DAS_EXEC([pwd])/script],
+AS_VAR_SET([output], $(./m4shtest))
+AS_VAR_IF([output], [DAS_EXEC([pwd])/m4shtest],
 [
 	DAT_CHK([:])
 ],
 [
+	AS_MESSAGE([locself=$output])
 	AT_FAIL_IF([:])
 ])
 )
+],
+[
+	AS_MESSAGE([code=$das_compile_status])
+	AT_FAIL_IF([:])
+])
+
+rm -f m4shtest*
 
 AT_CLEANUP
 
 AT_SETUP([locself "pwd/abc/"])
-AT_KEYWORDS([m4sh])
-DAT_DATA_M4SH([script.as],
+AT_KEYWORDS([m4sh language])
+DAS_COMPILE_M4SH([m4shtest], [-I DAT_MYLIBDIR],
 [[
 m4_include([dmeta/das.m4])
-AS_INIT
+]],
+[[
 DAS_SHELL_FN
 das_fn_locself
-AS_EXIT([0])
-]])
-DAT_CHK_M4SH([-I DAT_MYLIBDIR])
+AS_VAR_SET([m4shcode], [0])
+]],
+[
 mkdir abc
-cp -f script abc/
+cp -f m4shtest abc/
 (#subshell local vars
-AS_VAR_SET([output], $(./abc/script))
-AS_VAR_IF([output], [DAS_EXEC([pwd])/abc/script],
+AS_VAR_SET([output], $(./abc/m4shtest))
+AS_VAR_IF([output], [DAS_EXEC([pwd])/abc/m4shtest],
 [
 	DAT_CHK([:])
 ],
 [
+	AS_MESSAGE([locself=$output])
 	AT_FAIL_IF([:])
 ])
 )
 rm -rf abc
+],
+[
+	AS_MESSAGE([code=$das_compile_status])
+	AT_FAIL_IF([:])
+])
+
+rm -f m4shtest*
 
 AT_CLEANUP
 
 AT_SETUP([Intro Self])
-AT_KEYWORDS([m4sh])
-DAT_DATA_M4SH([script.as],
+AT_KEYWORDS([m4sh language])
+DAS_COMPILE_M4SH([m4shtest], [-I DAT_MYLIBDIR],
 [[
 m4_include([dmeta/das.m4])
-AS_INIT
+]],
+[[
 DAS_SHELL_FN
 DAS_INTRO_SELF([1.0])
-AS_EXIT([0])
-]])
-DAT_CHK_M4SH([-I DAT_MYLIBDIR])
+AS_VAR_SET([m4shcode], [0])
+]],
+[
 (#subshell local vars
-AS_VAR_SET([output], $(./script))
-AS_VAR_IF([output], ["I'm script (v1.0) on DAS_EXEC([pwd]), working on DAS_EXEC([pwd])!"],
+AS_VAR_SET([output], $(./m4shtest))
+AS_VAR_IF([output], ["I'm m4shtest (v1.0) on DAS_EXEC([pwd]), working on DAS_EXEC([pwd])!"],
 [
 	DAT_CHK([:])
 ],
 [
+	AS_MESSAGE([introself=$output])
 	AT_FAIL_IF([:])
 ])
 )
+],
+[
+	AS_MESSAGE([code=$das_compile_status])
+	AT_FAIL_IF([:])
+])
+
+#rm -f m4shtest*
 
 AT_CLEANUP
 
 AT_SETUP([Trim])
-AT_KEYWORDS([m4sh])
-DAT_DATA_M4SH([script.as],
+AT_KEYWORDS([m4sh language])
+DAS_COMPILE_M4SH([m4shtest], [-I DAT_MYLIBDIR],
 [[
 m4_include([dmeta/das.m4])
-AS_INIT
+]],
+[[
 DAS_SHELL_FN
 
 das_fn_str_trim "  value  "
@@ -294,10 +375,10 @@ das_fn_str_trim " value	 "
 das_fn_str_trim " value 	 "
 das_fn_str_trim " value 	"
 
-AS_EXIT([0])
-]])
-DAT_CHK_M4SH([-I DAT_MYLIBDIR])
-AT_CHECK([./script], [0], [dnl
+AS_VAR_SET([m4shcode], [0])
+]],
+[
+AT_CHECK([./m4shtest], [0], [dnl
 value
 value
 value
@@ -306,19 +387,27 @@ value
 value
 value
 ])
+],
+[
+	AS_MESSAGE([code=$das_compile_status])
+	AT_FAIL_IF([:])
+])
+
+rm -f m4shtest*
 
 AT_CLEANUP
 
 AT_SETUP([Parse Value])
-AT_KEYWORDS([m4sh])
+AT_KEYWORDS([m4sh language])
 DAS_DATA([input], [
 Key1:	Val1  	
 Key2 = 		Val2.0	  	Val2.1  	  
 ])
-DAT_DATA_M4SH([script.as],
+DAS_COMPILE_M4SH([m4shtest], [-I DAT_MYLIBDIR],
 [[
 m4_include([dmeta/das.m4])
-AS_INIT
+]],
+[[
 DAS_SHELL_FN
 
 (#subshell local vars
@@ -367,10 +456,10 @@ das_fn_file_parse_value "input" "Key2" "="
 
 )
 
-AS_EXIT([0])
-]])
-DAT_CHK_M4SH([-I DAT_MYLIBDIR])
-AT_CHECK([./script], [0], [dnl
+AS_VAR_SET([m4shcode], [0])
+]],
+[
+AT_CHECK([./m4shtest], [0], [dnl
 Val
 Val
 Val
@@ -392,6 +481,50 @@ Val2.0	  	Val2.1
 ])
 
 rm -f input
+],
+[
+	AS_MESSAGE([code=$das_compile_status])
+	AT_FAIL_IF([:])
+])
+
+rm -f m4shtest*
+
+AT_CLEANUP
+
+AT_SETUP([Compile C])
+AT_KEYWORDS([C language])
+DAT_SHELL_FN
+DAS_COMPILE([ctest], [],
+[[
+#include <stdio.h>
+]],
+[[
+int a = 0; int b = 0;
+printf("%d.%d\n", a, b);
+]],
+[DAT_CHK([:])], [AT_FAIL_IF([:])]
+)
+
+rm -f ctest*
+
+AT_CLEANUP
+
+AT_SETUP([Compile C++])
+AT_KEYWORDS([C++ language])
+DAT_SHELL_FN
+DAS_COMPILE_CXX([cxxtest], [],
+[[
+#include <iostream>
+using namespace std;
+]],
+[[
+int a = 0; int b = 0;
+cout << a << ", " << b << endl;
+]],
+[DAT_CHK([:])], [AT_FAIL_IF([:])]
+)
+
+rm -f cxxtest*
 
 AT_CLEANUP
 

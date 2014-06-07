@@ -68,15 +68,21 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 DIST_COMMON = $(dist_extra_pkgdata_DATA) $(dist_meta_pkgdata_DATA) \
 	$(srcdir)/./vpath.mk $(srcdir)/Makefile.am \
-	$(srcdir)/Makefile.in
+	$(srcdir)/Makefile.in $(srcdir)/dotaux.pc.in
 subdir = share/dotaux
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
-CONFIG_CLEAN_FILES =
+CONFIG_CLEAN_FILES = dotaux.pc
 CONFIG_CLEAN_VPATH_FILES =
+AM_V_GEN = $(am__v_GEN_@AM_V@)
+am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
+am__v_GEN_0 = @echo "  GEN   " $@;
+AM_V_at = $(am__v_at_@AM_V@)
+am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
+am__v_at_0 = @
 SOURCES =
 DIST_SOURCES =
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
@@ -107,11 +113,13 @@ am__uninstall_files_from_dir = { \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
 am__installdirs = "$(DESTDIR)$(extra_pkgdatadir)" \
-	"$(DESTDIR)$(meta_pkgdatadir)"
-DATA = $(dist_extra_pkgdata_DATA) $(dist_meta_pkgdata_DATA)
+	"$(DESTDIR)$(meta_pkgdatadir)" "$(DESTDIR)$(pkgconfigdir)"
+DATA = $(dist_extra_pkgdata_DATA) $(dist_meta_pkgdata_DATA) \
+	$(pkgconfig_DATA)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
+AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
@@ -188,12 +196,15 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 meta_pkgdatadir = $(pkgdatadir)/dmeta
-dist_meta_pkgdata_DATA = dmeta/das.m4 dmeta/dat.m4 
+dist_meta_pkgdata_DATA = dmeta/das.m4 dmeta/dat.m4 dmeta/dac.m4
 extra_pkgdatadir = $(pkgdatadir)/ext
-dist_extra_pkgdata_DATA = ext/tap-driver.sh ext/ax_prefix_config_h.m4
+dist_extra_pkgdata_DATA = ext/tap-driver.sh
 
 # make sure we put metadata on VPATH too
 BUILT_SOURCES = dmeta/das.m4
+COPY_DEPS = $(top_srcdir)/share/dotaux/dmeta/das.m4 $(top_srcdir)/share/dotaux/dmeta/dac.m4 $(top_srcdir)/share/dotaux/dmeta/dat.m4
+pkgconfigdir = $(pkgdatadir)/pkgconfig
+pkgconfig_DATA = dotaux.pc
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -229,6 +240,8 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
+dotaux.pc: $(top_builddir)/config.status $(srcdir)/dotaux.pc.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 install-dist_extra_pkgdataDATA: $(dist_extra_pkgdata_DATA)
 	@$(NORMAL_INSTALL)
 	test -z "$(extra_pkgdatadir)" || $(MKDIR_P) "$(DESTDIR)$(extra_pkgdatadir)"
@@ -265,6 +278,24 @@ uninstall-dist_meta_pkgdataDATA:
 	@list='$(dist_meta_pkgdata_DATA)'; test -n "$(meta_pkgdatadir)" || list=; \
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
 	dir='$(DESTDIR)$(meta_pkgdatadir)'; $(am__uninstall_files_from_dir)
+install-pkgconfigDATA: $(pkgconfig_DATA)
+	@$(NORMAL_INSTALL)
+	test -z "$(pkgconfigdir)" || $(MKDIR_P) "$(DESTDIR)$(pkgconfigdir)"
+	@list='$(pkgconfig_DATA)'; test -n "$(pkgconfigdir)" || list=; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(pkgconfigdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(pkgconfigdir)" || exit $$?; \
+	done
+
+uninstall-pkgconfigDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(pkgconfig_DATA)'; test -n "$(pkgconfigdir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(pkgconfigdir)'; $(am__uninstall_files_from_dir)
 tags: TAGS
 TAGS:
 
@@ -307,7 +338,7 @@ check: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) check-am
 all-am: Makefile $(DATA)
 installdirs:
-	for dir in "$(DESTDIR)$(extra_pkgdatadir)" "$(DESTDIR)$(meta_pkgdatadir)"; do \
+	for dir in "$(DESTDIR)$(extra_pkgdatadir)" "$(DESTDIR)$(meta_pkgdatadir)" "$(DESTDIR)$(pkgconfigdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: $(BUILT_SOURCES)
@@ -363,7 +394,7 @@ info: info-am
 info-am:
 
 install-data-am: install-dist_extra_pkgdataDATA \
-	install-dist_meta_pkgdataDATA
+	install-dist_meta_pkgdataDATA install-pkgconfigDATA
 
 install-dvi: install-dvi-am
 
@@ -408,7 +439,7 @@ ps: ps-am
 ps-am:
 
 uninstall-am: uninstall-dist_extra_pkgdataDATA \
-	uninstall-dist_meta_pkgdataDATA
+	uninstall-dist_meta_pkgdataDATA uninstall-pkgconfigDATA
 
 .MAKE: all check install install-am install-strip
 
@@ -418,20 +449,21 @@ uninstall-am: uninstall-dist_extra_pkgdataDATA \
 	install-dist_extra_pkgdataDATA install-dist_meta_pkgdataDATA \
 	install-dvi install-dvi-am install-exec install-exec-am \
 	install-html install-html-am install-info install-info-am \
-	install-man install-pdf install-pdf-am install-ps \
-	install-ps-am install-strip installcheck installcheck-am \
-	installdirs maintainer-clean maintainer-clean-generic \
-	mostlyclean mostlyclean-generic pdf pdf-am ps ps-am uninstall \
-	uninstall-am uninstall-dist_extra_pkgdataDATA \
-	uninstall-dist_meta_pkgdataDATA
+	install-man install-pdf install-pdf-am install-pkgconfigDATA \
+	install-ps install-ps-am install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-generic pdf \
+	pdf-am ps ps-am uninstall uninstall-am \
+	uninstall-dist_extra_pkgdataDATA \
+	uninstall-dist_meta_pkgdataDATA uninstall-pkgconfigDATA
 
 
 dmeta/das.m4: Makefile
-	if ! test -d dmeta; then \
+	@if ! test -d dmeta; then \
 		mkdir dmeta; \
 		mkdir ext; \
 	fi; 
-	if ! test -f $@; then \
+	@if ! test -f $@; then \
 		cp -f $(top_srcdir)/share/dotaux/dmeta/* dmeta/; \
 		cp -f $(top_srcdir)/share/dotaux/ext/* ext/; \
 	fi;

@@ -33,10 +33,13 @@
 #---------------------------------------
 
 meta_pkgdatadir = $(pkgdatadir)/dmeta
-dist_meta_pkgdata_DATA = dmeta/das.m4 dmeta/dat.m4 
+dist_meta_pkgdata_DATA = dmeta/das.m4 dmeta/dat.m4 dmeta/dac.m4
 
 extra_pkgdatadir = $(pkgdatadir)/ext
-dist_extra_pkgdata_DATA = ext/tap-driver.sh ext/ax_prefix_config_h.m4
+dist_extra_pkgdata_DATA = ext/tap-driver.sh
 
 include ./vpath.mk
+
+pkgconfigdir = $(pkgdatadir)/pkgconfig
+pkgconfig_DATA = dotaux.pc
 

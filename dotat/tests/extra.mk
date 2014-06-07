@@ -50,12 +50,11 @@ EXTRA_DIST += at
 BUILT_SOURCES += at/m4sh/placeholder
 
 at/m4sh/placeholder: Makefile
-	if ! test -d at; then \
-		mkdir at; \
-		mkdir at/m4sugar; \
-		mkdir at/m4sh;\
+	@if ! test -d at; then \
+		$(MKDIR_P) at/m4sh; \
+		$(MKDIR_P) at/m4sugar; \
 	fi;
-	if ! test -f $@; then \
+	@if ! test -f $@; then \
 		touch $@; \
 	fi;
 

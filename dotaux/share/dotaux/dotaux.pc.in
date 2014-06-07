@@ -1,0 +1,7 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+
+Name: dotAux
+Description: dotAux tools
+Version: @VERSION@
+

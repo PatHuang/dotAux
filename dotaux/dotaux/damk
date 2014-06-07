@@ -1,5 +1,5 @@
 #! /bin/sh
-# Generated from /home/pat/dotaux/pkgs/dotaux/bin/dotaux.as by GNU Autoconf 2.68.
+# Generated from /home/pat/dotaux/pkgs/dotaux/bin/damk.as by GNU Autoconf 2.68.
 ## -------------------- ##
 ## M4sh Initialization. ##
 ## -------------------- ##
@@ -380,66 +380,6 @@ as_cr_alnum=$as_cr_Letters$as_cr_digits
 as_tr_sh="eval sed 'y%*+%pp%;s%[^_$as_cr_alnum]%_%g'"
 
 
-as_awk_strverscmp='
-  # Use only awk features that work with 7th edition Unix awk (1978).
-  # My, what an old awk you have, Mr. Solaris!
-  END {
-    while (length(v1) && length(v2)) {
-      # Set d1 to be the next thing to compare from v1, and likewise for d2.
-      # Normally this is a single character, but if v1 and v2 contain digits,
-      # compare them as integers and fractions as strverscmp does.
-      if (v1 ~ /^[0-9]/ && v2 ~ /^[0-9]/) {
-	# Split v1 and v2 into their leading digit string components d1 and d2,
-	# and advance v1 and v2 past the leading digit strings.
-	for (len1 = 1; substr(v1, len1 + 1) ~ /^[0-9]/; len1++) continue
-	for (len2 = 1; substr(v2, len2 + 1) ~ /^[0-9]/; len2++) continue
-	d1 = substr(v1, 1, len1); v1 = substr(v1, len1 + 1)
-	d2 = substr(v2, 1, len2); v2 = substr(v2, len2 + 1)
-	if (d1 ~ /^0/) {
-	  if (d2 ~ /^0/) {
-	    # Compare two fractions.
-	    while (d1 ~ /^0/ && d2 ~ /^0/) {
-	      d1 = substr(d1, 2); len1--
-	      d2 = substr(d2, 2); len2--
-	    }
-	    if (len1 != len2 && ! (len1 && len2 && substr(d1, 1, 1) == substr(d2, 1, 1))) {
-	      # The two components differ in length, and the common prefix
-	      # contains only leading zeros.  Consider the longer to be less.
-	      d1 = -len1
-	      d2 = -len2
-	    } else {
-	      # Otherwise, compare as strings.
-	      d1 = "x" d1
-	      d2 = "x" d2
-	    }
-	  } else {
-	    # A fraction is less than an integer.
-	    exit 1
-	  }
-	} else {
-	  if (d2 ~ /^0/) {
-	    # An integer is greater than a fraction.
-	    exit 2
-	  } else {
-	    # Compare two integers.
-	    d1 += 0
-	    d2 += 0
-	  }
-	}
-      } else {
-	# The normal case, without worrying about digits.
-	d1 = substr(v1, 1, 1); v1 = substr(v1, 2)
-	d2 = substr(v2, 1, 1); v2 = substr(v2, 2)
-      }
-      if (d1 < d2) exit 1
-      if (d1 > d2) exit 2
-    }
-    # Beware Solaris /usr/xgp4/bin/awk (at least through Solaris 10),
-    # which mishandles some comparisons of empty strings to integers.
-    if (length(v2)) exit 1
-    if (length(v1)) exit 2
-  }
-'
 ## -------------------- ##
 ## Main body of script. ##
 ## -------------------- ##
@@ -851,7 +791,7 @@ das_fn_chkctx
 
 	# hope nobody else uses das_def_*
 
-	das_def_myversion="0.1.0.8"
+	das_def_myversion="0.1.0.4"
 
 
 # usage
@@ -863,15 +803,17 @@ usage()
 	$as_echo "$as_me:   -h|--help               Display help info
   -V|--version            Display version info
   -a[da_folder]|--aux=da_folder
-                          da_folder: Your local dotAux folder to store stuff
-                          from dotAux distro
-  -c|--clean              function clean, clear all and clear autotools
-                          generated files such as aclocal, etc. If not
-                          specified, default function is setup, to setup
-                          initial dotAux folder.
-  -k[namelist]|--keep=namelist
-                          namelist: Dont' clear files or folders in namelist
-                          which looks like \"name1,name2,name3...\"
+                          da_folder: Your local dotAux folder
+  -c                      config, is equal to ./configure --prefix=/abc.
+  --clean                 clean, is equal to make clean
+  --dclean                dclean, is equal to make distclean
+  --aclean                aclean, is equal to make clean && make distclean
+  -m                      make, is equal to make.
+  --cmake                 cmake, is equal to make check.
+  --dmake                 dmake, is equal to make dist.
+  --amake                 amake, is equal to make && make check.
+  -i                      inst, is equal to make install.
+  --tinst                 tinst, is equal to make DESTDIR=pwd-inst install.
 	" >&1
 	# AS_MESSAGE
 }
@@ -879,7 +821,7 @@ usage()
 
 	# hope nobody else uses das_def_*
 
-	das_def_opts="`getopt -o hVa:k:c -l help -l version -l aux: -l keep: -l clean -- "$@"`"
+	das_def_opts="`getopt -o hVa:cmi -l help -l version -l aux: -l clean -l dclean -l aclean -l cmake -l dmake -l amake -l tinst -- "$@"`"
 
 
 	# hope nobody else uses das_def_*
@@ -907,14 +849,19 @@ eval set -- "$das_def_opts"
 	das_def_da_folder="dotaux"
 
 
-	# hope nobody else uses das_def_*
-
-	das_def_kp_namelist=""
-
 # Default function - setup
 # Available functions:
-# setup, setup dotAux
-# clean, clear all and clear autotools generated files such as aclocal, etc.
+# setup, is equal to autoreconf -ivf -Wall, etc.
+# config, is equal to ./configure --prefix=/abc.
+# clean, is equal to make clean.
+# dclean, is equal to make distclean.
+# aclean, is equal to make clean && make distclean.
+# make, is equal to make.
+# cmake, is equal to make check.
+# dmake, is equal to make dist.
+# amake, is equal to make && make check.
+# inst, is equal to make install.
+# tinst, is equal to make DESTDIR=pwd-inst install.
 
 	# hope nobody else uses das_def_*
 
@@ -930,10 +877,26 @@ do
     $as_echo "$das_def_myversion"; as_fn_exit $? ;; #(
   -a|--aux) :
     das_def_da_folder=$2; shift 2 ;; #(
-  -k|--keep) :
-    das_def_kp_namelist=$2; shift 2 ;; #(
-  -c|--clean) :
+  -c) :
+    das_def_fn=config; shift ;; #(
+  --clean) :
     das_def_fn=clean; shift ;; #(
+  --dclean) :
+    das_def_fn=dclean; shift ;; #(
+  --aclean) :
+    das_def_fn=aclean; shift ;; #(
+  -m) :
+    das_def_fn=make; shift ;; #(
+  --cmake) :
+    das_def_fn=cmake; shift ;; #(
+  --dmake) :
+    das_def_fn=dmake; shift ;; #(
+  --amake) :
+    das_def_fn=amake; shift ;; #(
+  -i) :
+    das_def_fn=inst; shift ;; #(
+  --tinst) :
+    das_def_fn=tinst; shift ;; #(
   --) :
     shift; break ;; #(
   *) :
@@ -966,25 +929,24 @@ fi
 
 
 # Test dotAux if exists. Our Magic
-if test -f "$das_def_metadir/da.conf"; then :
 
-	if test "x$das_def_fn" = xsetup; then :
+	if ! test -f "$das_def_metadir/da.conf"; then :
 
-		$as_echo "$as_me: WARNING: dotAux already exists. Will do a reset" >&2
-
-fi
-
-else
-
-
-	if test "x$das_def_fn" = xsetup; then :
-
-else
-
-		as_fn_error $? "$das_def_metadir/da.conf not found"
+	as_fn_error $? "$das_def_metadir/da.conf not found"
 
 fi
 
+# NO_FILE
+
+# opts == vpath
+das_def_opts=`das_fn_file_parse_value "$das_def_metadir/da.conf" "VPATH" "="`
+if test x"$das_def_opts" = x1 -o x"$das_def_opts" = x; then :
+
+	das_def_opts=$das_pwd/build
+
+elif ! test -d $das_def_opts; then :
+
+	das_def_opts=$das_pwd
 
 fi
 # AS_IF
@@ -997,146 +959,77 @@ fi
 `"
 
 
-# do_copy
-# -------
-# Copy myself and meta data.
-do_copy()
-{
-	$as_echo "$as_me: Copy myself..." >&1
-	cp -f "$das_myself" "$das_def_da_folder"/
-	cp -f "$das_myloc/damk" "$das_def_da_folder"/
-	cp -f "$das_myloc/daln" "$das_def_da_folder"/
-	cp -f "$das_myloc/dadlm" "$das_def_da_folder"/
-	$as_echo "$as_me: Testing $das_def_da_folder/$das_me..." >&1
-	das_def_opts=`./"$das_def_da_folder"/$das_me --version`
-	$as_echo "$as_me: Compare version \"$das_def_opts\" and \"$das_def_myversion\"..." >&1
-	as_arg_v1=$das_def_opts
-as_arg_v2=$das_def_myversion
-awk "$as_awk_strverscmp" v1="$as_arg_v1" v2="$as_arg_v2" /dev/null
-case $? in #(
-  1) :
-    das_def_opts="<" ;; #(
-  0) :
-    das_def_opts="=" ;; #(
-  2) :
-    das_def_opts=">" ;; #(
-  *) :
-     ;;
-esac
 
-	if test "x$das_def_opts" = x=; then :
+	if ! test -f "configure"; then :
 
-else
+	if test "x$das_def_fn" = xconfig; then :
 
-		as_fn_error $? "Test \"$das_def_da_folder/$das_me\" FAIL"
+		as_fn_error $? "configure not created yet. Might need to try without any option first (means do setup)."
+
+fi
+	# AS_VAR_IF
 
 fi
 
-	$as_echo "$as_me: Copy metadata..." >&1
-(#subshell local vars
-	if test -f "$das_myloc/../share/dotaux/dmeta/das.m4"; then :
+# NO_FILE
 
-		path="$das_myloc/../share/dotaux/"
+	if ! test -d "$das_def_opts"; then :
 
-elif test -f "$das_myloc/../dotaux/dmeta/das.m4"; then :
+	if test "x$das_def_fn" = xconfig; then :
+  das_fn_chkdir "$das_def_opts"
+fi
 
-		path="$das_myloc/../dotaux/"
+fi
+
+# NO_DIR
+
+	if ! test -d "$das_def_opts"; then :
+
+
+	if test "x$das_def_fn" = xsetup; then :
 
 else
 
-		as_fn_error $? "Cannot determine dotAux lib path."
+		as_fn_error $? "$das_def_opts not created yet. Might need to try with \"-c\" option first."
 
 fi
-	# AS_IF
-	$as_echo "$as_me: Determined dotAux lib path '$path'." >&1
-	cp -f "$path/ext/tap-driver.sh" "$das_def_da_folder"/
-	cp -f "$path/dmeta/das.m4" "$das_def_metadir"/
-	cp -f "$path/dmeta/dac.m4" "$das_def_metadir"/
-	cp -f "$path/dmeta/dat.m4" "$das_def_metadir"/
-)
-	$as_echo "$as_me: Prepared dotAux folder with meta subfolder: $das_def_metadir" >&1
-}
-# do_copy
 
-# clear_da
-# --------
-# Clear da_folder.
-clear_da()
-{
-(#subshell local vars
-	found=`	$as_echo "$das_def_kp_namelist" | sed -n "/$das_def_da_folder/ p" `
-	if test x"$found" != x; then :
-
-		$as_echo "$as_me: Keep $das_def_da_folder" >&1
-		cp -rf $das_def_da_folder $das_def_da_folder.tmp
-		rm -rf $das_def_da_folder/*
-		mv -f $das_def_da_folder.tmp/dmeta $das_def_da_folder/
-		mv -f $das_def_da_folder.tmp/tap-driver.sh $das_def_da_folder/
-		mv -f $das_def_da_folder.tmp/$das_me $das_def_da_folder/
-		mv -f $das_def_da_folder.tmp/damk $das_def_da_folder/
-		mv -f $das_def_da_folder.tmp/daln $das_def_da_folder/
-		mv -f $das_def_da_folder.tmp/dadlm $das_def_da_folder/
-
-		rm -rf $das_def_da_folder.tmp
-
-else
-
-		$as_echo "$as_me: Don't keep $das_def_da_folder" >&1
-		rm -rf $das_def_da_folder
+	# DAS_VAR_IFNOT
 
 fi
-	# AS_IF
-)
-}
-# clear_da
+
+# NO_DIR
 
 case $das_def_fn in #(
   setup) :
-
-	$as_echo "$as_me: Function is setup..." >&1
-	# Test and create da_folder
-	das_fn_chkdir "$das_def_metadir"
-	do_copy
-
-	$as_echo "$as_me: Testing local include path $das_pwd/$das_def_da_folder..." >&1
-
-	if ! test -d "$das_pwd/$das_def_da_folder"; then :
-
-		$as_echo "$as_me: WARNING: local include path $das_pwd/$das_def_da_folder not exist?" >&2
-
-fi
-
-	#AS_ECHO(["FLAGS = -I $das_pwd/$da_folder"]) >$metadir/da.conf
-	$as_echo "VPATH = 1" >$das_def_metadir/da.conf
-	$as_echo "$as_me: Environment like local include path of dotAux lib such as m4, etc, and options, are stored in $das_def_metadir/da.conf" >&1
- ;; #(
+    autoreconf -ivf -Wall ;; #(
+  config) :
+    cd $das_def_opts; $das_pwd/configure --prefix=/usr/local/$das_def_myclient; cd $das_pwd ;; #(
   clean) :
-
-	$as_echo "$as_me: Function is clean..." >&1
-
-	if test -f "Makefile"; then :
-  make clean; make distclean
-fi
-
-	clear_da
-
-	# clear generated stuff by autotools
-	rm -f aclocal.m4 configure >/dev/null 2>&1
-	rm -rf autom4te.cache >/dev/null 2>&1
-	rm -f autoscan.log configure.scan config.h.in~ configure.ac~
-	find . -name "Makefile.in" -exec rm -f {} \;
-	# clear dist package
-	rm -rf $das_def_myclient-*
-	# clear dist and build dir
-	rm -rf inst build
-	# Log file
-	das_def_opts=$das_pwd/../dotaux.log
- ;; #(
+    cd $das_def_opts; make clean; cd $das_pwd ;; #(
+  dclean) :
+    cd $das_def_opts; make distclean; cd $das_pwd ;; #(
+  aclean) :
+    cd $das_def_opts; make clean && make distclean; cd $das_pwd ;; #(
+  make) :
+    cd $das_def_opts; make all; cd $das_pwd ;; #(
+  cmake) :
+    cd $das_def_opts; make check; cd $das_pwd ;; #(
+  dmake) :
+    cd $das_def_opts; make dist; cd $das_pwd ;; #(
+  amake) :
+    cd $das_def_opts; make all && make check; cd $das_pwd ;; #(
+  inst) :
+    cd $das_def_opts; sudo make install; cd $das_pwd ;; #(
+  tinst) :
+    cd $das_def_opts; make DESTDIR=$das_def_opts/inst install; cd $das_pwd ;; #(
   *) :
 
-	as_fn_error $? "Unknown function $das_def_fn"
+		as_fn_error $? "Unknown function: $das_def_fn"
+
  ;;
 esac
+
 
 
 

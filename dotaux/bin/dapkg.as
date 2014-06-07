@@ -145,13 +145,13 @@ AS_VAR_IF([fn], [setup], [
 	])
 	AS_MESSAGE([Prepared package dotAux folder: $pa_folder])
 
-	AS_ECHO(['NamePattern = date +%Y%b%d.%H%M']) >$pa_folder/pa.conf
+	AS_ECHO(['NAME_PATTERN = date +%Y%b%d.%H%M']) >$pa_folder/pa.conf
 	AS_MESSAGE([Assume your package name is: $myclient.])
 	AS_MESSAGE([Tarball name pattern is stored in $pa_folder/pa.conf])
 	AS_MESSAGE([Testing pa.conf ...])
 ])
 # AS_VAR_IF
-AS_VAR_SET([myversion], DAS_EXEC([das_fn_file_parse_value "$pa_folder/pa.conf" "NamePattern" "="]))
+AS_VAR_SET([myversion], DAS_EXEC([das_fn_file_parse_value "$pa_folder/pa.conf" "NAME_PATTERN" "="]))
 AS_VAR_SET([myversion], DAS_EXEC([$myversion]))
 AS_VAR_SET([myversion], ["$myclient"."$myversion".tar.bz2])
 AS_MESSAGE([Package name will be in a form of $myversion])

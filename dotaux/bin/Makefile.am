@@ -50,6 +50,8 @@ bin_SCRIPTS += damk
 EXTRA_DIST += damk.as
 bin_SCRIPTS += daln
 EXTRA_DIST += daln.as
+bin_SCRIPTS += dadlm
+EXTRA_DIST += dadlm.as
 
 
 CLEANFILES = $(bin_SCRIPTS)
@@ -58,5 +60,5 @@ GENSCRIPT = autom4te --language=m4sh --force -Wall
 GENSCRIPT_FLAGS = -I $(abs_top_srcdir)/bin $(ACLOCAL_AMFLAGS)
 
 $(bin_SCRIPTS): $(EXTRA_DIST)
-	$(GENSCRIPT) $(GENSCRIPT_FLAGS) $@.as -o $@
+	$(AM_V_GEN) $(GENSCRIPT) $(GENSCRIPT_FLAGS) $@.as -o $@
 

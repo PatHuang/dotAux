@@ -8,7 +8,7 @@ AS_INIT
 ## --------------------------- ##
 
 # No extra re-exec with CONFIG_SHELL
-DAS_COMPILE_M4SH([],
+DAS_COMPILE_M4SH([m4shtest], [],
 [[
 	dnl We have to muck with internal details to goad the script into
 	dnl thinking that the default shell is always good enough.
@@ -19,10 +19,12 @@ DAS_COMPILE_M4SH([],
 	echo foo > ok
 	test -f ok
 	rm -f ok
-]])dnl DAS_COMPILE_M4SH
+]],
+[],[AS_ERROR([code=$das_compile_status])]
+)
 
 # Forced re-exec with CONFIG_SHELL
-DAS_COMPILE_M4SH([],
+DAS_COMPILE_M4SH([m4shtest], [],
 [[
 	m4_define([_AS_FORCE_REEXEC_WITH_CONFIG_SHELL], [yes])
 ]],
@@ -30,7 +32,9 @@ DAS_COMPILE_M4SH([],
 	echo foo > sentinel
 	test -f sentinel
 	rm -f sentinel
-]])dnl DAS_COMPILE_M4SH
+]],
+[],[AS_ERROR([code=$das_compile_status])]
+)
 
 # Calling the script simply 'script' could cause problems with
 # Solaris /usr/xpg4/bin/sh in the invocation 'sh script' below.
@@ -56,6 +60,8 @@ y  z
 1 2 3'
 
 rm -f fake-shell
+
+rm -f m4shtest m4shtest.as
 
 AS_EXIT
 

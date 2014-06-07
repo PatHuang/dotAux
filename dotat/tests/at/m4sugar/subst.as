@@ -6,7 +6,7 @@ AS_INIT
 ## m4_bpatsubsts.  ##
 ## --------------- ##
 
-DAS_COMPILE_M4([],[],
+DAS_COMPILE_M4([m4test], [],[],
 [[
 m4_bpatsubsts([11], [^..$])
 m4_bpatsubsts([11], [\(.\)1], [\12])
@@ -29,7 +29,11 @@ good
 good
 good
 $1$#$@
-]])dnl DAS_COMPILE_M4
+]],
+[],[AS_ERROR([code=$das_compile_status])]
+)
+
+rm -f m4test m4test.m4
 
 AS_EXIT
 

@@ -65,7 +65,7 @@ usage()
 {
 	AS_MESSAGE([Usage and optinos:])
 	AS_MESSAGE([ <link> <pattern>
-	echo "This utility links a source (file or folder) to current location as <link>"
+This utility links a source (file or folder) to current location as <link>
 AS_HELP_STRING([[link]],
 [Source and Dest (the link) name.])
 AS_HELP_STRING([[pattern]],
@@ -78,7 +78,7 @@ AS_HELP_STRING([[-V|--version]],
 	# AS_MESSAGE
 }
 
-DAS_DEF_VAR([opts], DAS_EXEC([getopt -o hV -l help -l version "$@"]))
+DAS_DEF_VAR([opts], DAS_EXEC([getopt -o hV -l help -l version -- "$@"]))
 DAS_DEF_VAR([code], [$?])
 DAS_STATUS_FAIL([$code], [
 	usage
@@ -88,38 +88,48 @@ DAS_UNDEF_VAR([code])
 
 eval set -- "$opts"
 
-(#subshell local vars
-AS_VAR_SET([src], [$1])
-AS_VAR_SET([pat], ["$2"])
-AS_VAR_SET([spath], [..])
-AS_VAR_SET([list])
-AS_VAR_SET([found])
-AS_VAR_SET([timeout], [20])
-
-AS_MESSAGE([Searching for "$src", matching "$pat"...])
-AS_VAR_SET([pat], DAS_EXEC([DAS_STR_REPLACE([$pat], [\/], [_])])) #AS_ECHO(["$pat"]) | sed "s/\//_/g"]))
 while :
 do
-	AS_IF([timeout], [0], [
-		AS_WARN([Timeout])
-		break
-	])
-	AS_MESSAGE([Search on path "$spath"])
-	AS_VAR_SET([list], DAS_EXEC([das_fn_dir_file_list "$spath" "$src"]))
+	AS_CASE([$1],
+		[-h|--help], [usage; AS_EXIT],
+		[-V|--version], [AS_ECHO(["$myversion"]); AS_EXIT],
+		[--], [shift; break],
+		[
+			usage
+			AS_ERROR([Unknown options: $@])
+		]
+	)
+	# AS_CASE
+done
+
+DAS_INTRO_SELF([$myversion])
+
+AS_IF([test $# -lt 2], [
+	usage
+	AS_ERROR([Incorrect arguments: $@])
+])
+
+AS_FUNCTION_DESCRIBE([do_check], [list, pattern], [Check each file to see if match.])
+do_check()
+{
 (#subshell local vars
+	AS_VAR_SET([list], ["$[]1]")
+	AS_VAR_SET([pat], ["$[]2"])
+	AS_VAR_SET([found])
+
 	AS_FOR([], [t], [$list], [
 		AS_VAR_IF([pat], [], [
-			AS_MESSAGE([Found $t, link it])
+			AS_ECHO(["Found $t, link it"])
 			AS_LN_S([$t], DAS_EXEC([das_fn_basename "$t"]))
-			return
+			break
 		],
 		[
-			AS_VAR_SET([found], DAS_EXEC([DAS_STR_REPLACE([$t], [\/], [_])])) #AS_ECHO(["$t"]) | sed "s/\//_/g")
+			AS_VAR_SET([found], DAS_EXEC([DAS_STR_REPLACE([$t], [\/], [_])]))
 			AS_VAR_SET([found], DAS_EXEC([DAS_STR_MATCH([$found], [$pat])]))
-			DAS_HAS_STR(["$found"], [
-				AS_MESSAGE([Found $t, link it])
+			DAS_HAS_STR([$found], [
+				AS_ECHO(["Found $t, link it"])
 				AS_LN_S([$t], DAS_EXEC([das_fn_basename "$t"]))
-				return
+				break
 			])
 			# DAS_HAS_STR
 		])
@@ -127,9 +137,37 @@ do
 	])
 	# AS_FOR
 )
+}
+
+(#subshell local vars
+AS_VAR_SET([src], [$1])
+AS_VAR_SET([pat], ["$2"])
+AS_VAR_SET([spath], [..])
+AS_VAR_SET([list])
+AS_VAR_SET([timeout], [20])
+
+AS_MESSAGE([Searching for "$src", matching "$pat"...])
+AS_VAR_SET([pat], DAS_EXEC([DAS_STR_REPLACE([$pat], [\/], [_])])) 
+while :
+do
+	AS_MESSAGE([Search on path "$spath"])
+	AS_VAR_SET([list], DAS_EXEC([das_fn_dir_file_list "$spath" "$src"]))
+	
+	AS_VAR_SET([opts], DAS_EXEC([do_check "$list" "$pat"]))
+	DAS_HAS_STR([$opts], [
+		AS_MESSAGE([$opts])
+		break
+	])
+	AS_VAR_IF([timeout], [0], [
+		AS_WARN([Timeout])
+		break
+	])
 	AS_VAR_SET([spath], [$spath/..])
 	AS_VAR_ARITH([timeout], [$timeout - 1])
 done
 # while do
 )
+
+DAS_UNDEF_VAR([myversion])
+DAS_UNDEF_VAR([opts])
 

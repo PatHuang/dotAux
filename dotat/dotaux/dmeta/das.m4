@@ -115,6 +115,8 @@ m4_defun([DAS_DLOG_CLOSE],
 # )
 # echo $var # still got 0
 # However, {var=1} doesn't a subshell.
+# Moreover, behavior of return and break in subshell is not that
+# what you might expect.
 # Cost of subshell is notable too.
 m4_defun([DAS_DEF_VAR],
 [
@@ -217,19 +219,19 @@ m4_defun([DAS_NO_DIR],
 # _DAS_STR_DO_PARSE(Str, Key, Delim)
 # -----------------
 m4_defun([_DAS_STR_DO_PARSE],
-[
+[dnl
 	dnl val=`echo "$str" | sed -n "s/^$key[ ]\{0,1\}[:]\{0,1\}""$delim""[:]\{0,1\}[ ]\{0,1\}\(.*\)/\1/p"`
-	AS_ECHO(["$[]1"]) | sed -n ["s/^"]"$[]2"["[ ]\{0,1\}[:]\{0,1\}"]"$[]3"["[:]\{0,1\}[ ]\{0,1\}\(.*\)/\1/p"]
+	AS_ECHO(["$[]1"]) | sed -n ["s/^"]"$[]2"["[ ]\{0,1\}[:]\{0,1\}"]"$[]3"["[:]\{0,1\}[ ]\{0,1\}\(.*\)/\1/p"] dnl
 ])
 # _DAS_STR_DO_PARSE
 
 # _DAS_FILE_DO_PARSE(File, Key, Delim)
 # -----------------
 m4_defun([_DAS_FILE_DO_PARSE],
-[
+[dnl
 	dnl awk '/MemFree/{printf "%d\n", $2 * 0.9;}' < /proc/meminfo
 	dnl val=`sed -n "/^$key[ ]\{0,1\}[:]\{0,1\}""$delim""[:]\{0,1\}[ ]\{0,1\}/ {p;q;}" "$file"`
-	sed -n ["/^"]"$[]2"["[ ]\{0,1\}[:]\{0,1\}"]"$[]3"["[:]\{0,1\}[ ]\{0,1\}/ {p;q;}" ]"$[]1"
+	sed -n ["/^"]"$[]2"["[ ]\{0,1\}[:]\{0,1\}"]"$[]3"["[:]\{0,1\}[ ]\{0,1\}/ {p;q;}" ]"$[]1" dnl
 ])
 # _DAS_FILE_DO_PARSE
 
@@ -374,15 +376,15 @@ das_fn_chkdir()
 {
 (#subshell local vars
 	AS_VAR_SET([dname], [$[]1])
-	DAS_HAS_FILE(["$dname"], [
+	DAS_HAS_FILE([$dname], [
 		AS_ERROR(["$dname" exists as a file! Exit ...])
 	])
 	# HAS_FILE
-	DAS_NO_DIR(["$dname"], [
+	DAS_NO_DIR([$dname], [
 		AS_MKDIR_P([$dname])
 	])
 	# NO_DIR
-	DAS_NO_DIR(["$dname"], [
+	DAS_NO_DIR([$dname], [
 		AS_ERROR(["$dname" required but seems failed to create it. Exit...])
 	])
 	# NO_DIR
@@ -480,7 +482,66 @@ das_fn_dir_file_list()
 }
 # das_fn_dir_file_list
 
+# --------------------------
+AS_FUNCTION_DESCRIBE([das_fn_str_field_count], [STR, [Delim]], [
+Get cound of fields in the string STR.
+Per "4:3:2:1", the delimiter is ":", count is 4.
+Defalt delim is space ' '.])
+das_fn_str_field_count()
+{
+(#subshell local vars
+	AS_VAR_SET([str], ["$[]1"])
+	AS_VAR_SET([delim], ["$[]2"])
+	AS_VAR_IF([delim], [], [
+		# fall back to default delim ' '
+		AS_VAR_SET([delim], [ ])
+	])
+
+	AS_ECHO(["$str"]) | awk -F '"$delim"' '{print NF}'
+)
+}
+# das_fn_str_field_count
+
+# --------------------------
+AS_FUNCTION_DESCRIBE([das_fn_str_get_field], [STR, INDEX, [Delim]], [
+Get a specific field in the string STR.
+Per "4:3:2:1", index starts from 1; get_field(2) returns "3".
+Defalt delim is space ' '.])
+das_fn_str_get_field()
+{
+(#subshell local vars
+	AS_VAR_SET([str], ["$[]1"])
+	AS_VAR_SET([index], ["$[]2"])
+	AS_VAR_SET([delim], ["$[]3"])
+	AS_VAR_IF([delim], [], [
+		# fall back to default delim ' '
+		AS_VAR_SET([delim], [ ])
+	])
+
+	AS_ECHO(["$str"]) | awk -F '"$delim"' '{print $'"$index"'}'
+)
+}
+# das_fn_str_get_field
+
 # -------------------
+AS_FUNCTION_DESCRIBE([das_fn_chkctx], [], [Check execution context])
+das_fn_chkctx()
+{
+	AS_VAR_SET([das_ctx], [0])
+	m4_ifdef([AS_INIT], [AS_VAR_SET([das_ctx], [1])])
+	m4_ifdef([AC_INIT], [AS_VAR_SET([das_ctx], [2])])
+	m4_ifdef([AT_INIT], [AS_VAR_SET([das_ctx], [3])])
+	# FIXME if not gcc/g++, see AC_PROG_CC code for reference
+	AS_VAR_IF([das_ctx], [3], [
+		DAS_NO_STR([$CC], [AS_VAR_SET([CC], [gcc])])
+		DAS_NO_STR([$CXX], [AS_VAR_SET([CXX], [g++])])
+	])
+}
+# das_fn_chkctx
+
+# -------------------
+das_fn_chkctx
+
 ])
 #DAS_SHELL_FN
 
@@ -526,8 +587,8 @@ m4_defun([DAS_CLIENT],
 # ------------------------
 # Test if STR has substr PAT
 m4_defun([DAS_STR_MATCH],
-[
-	AS_ECHO(["$1"]) | sed -n "/$2/ p"
+[dnl
+	AS_ECHO(["$1"]) | sed -n "/$2/ p" dnl
 ])
 # DAS_STR_MATCH
 
@@ -536,8 +597,8 @@ m4_defun([DAS_STR_MATCH],
 # Replace a pattern (key) in string variable to a new pattern (nstr).
 # New pattern, allow be empty.
 m4_defun([DAS_STR_REPLACE],
-[
-	AS_ECHO(["$1"]) | sed -e "s/$2/$3/g"`
+[dnl
+	AS_ECHO(["$1"]) | sed -e "s/$2/$3/g" dnl
 ])
 # DAS_STR_REPLACE
 
@@ -545,8 +606,8 @@ m4_defun([DAS_STR_REPLACE],
 # ------------------------
 # Test string starts with a pattern (excluding space ' ').
 m4_defun([DAS_STR_START_WITH_PATTERN],
-[
-	AS_ECHO(["$1"]) | sed -n "/^$2/ p"
+[dnl
+	AS_ECHO(["$1"]) | sed -n "/^$2/ p" dnl
 ])
 # DAS_STR_START_WITH_PATTERN
 
@@ -554,8 +615,8 @@ m4_defun([DAS_STR_START_WITH_PATTERN],
 # ------------------------
 # Test string ends with a pattern (excluding space ' ').
 m4_defun([DAS_STR_END_WITH_PATTERN],
-[
-	AS_ECHO(["$1"]) | sed -n "/$2""$/ p"
+[dnl
+	AS_ECHO(["$1"]) | sed -n "/$2""$/ p" dnl
 ])
 # DAS_STR_END_WITH_PATTERN
 
@@ -563,8 +624,8 @@ m4_defun([DAS_STR_END_WITH_PATTERN],
 # ------------------------
 # Test string has substr exactly left-match a pattern (excluding space ' ').
 m4_defun([DAS_STR_LEFT_MATCH_EXACTLY],
-[
-	AS_ECHO(["$1"]) | sed -n "/\<$2/ p"
+[dnl
+	AS_ECHO(["$1"]) | sed -n "/\<$2/ p" dnl
 ])
 # DAS_STR_LEFT_MATCH_EXACTLY
 
@@ -572,19 +633,19 @@ m4_defun([DAS_STR_LEFT_MATCH_EXACTLY],
 # ------------------------
 # Test string has substr exactly match a pattern (excluding space ' ').
 m4_defun([DAS_STR_MATCH_EXACTLY],
-[
-	AS_ECHO(["$1"]) | sed -n "/\<$2\>/ p"
+[dnl
+	AS_ECHO(["$1"]) | sed -n "/\<$2\>/ p" dnl
 ])
 # DAS_STR_MATCH_EXACTLY
  
-# DAS_DATA_M4SH(CONTENTS)
+# DAS_DATA_ALLOW(CONTENTS)
 # ---------------------------------
 # Escape the invalid tokens with @&t@.
-m4_defun([DAS_DATA_M4SH],
+m4_defun([DAS_DATA_ALLOW],
 [
 	m4_bpatsubst([$1], [\(@.\)\(.@\)\|\(m4\|AS\)\(_\)\|\(d\)\(nl\)], [\1\3\5@&t@\2\4\6])
 ])
-#DAS_DATA_M4SH
+# DAS_DATA_ALLOW
 
 
 # DAS_DATA(FILENAME, CONTENT)
@@ -594,64 +655,97 @@ m4_defun([DAS_DATA],
 [
 DAS_HAS_STR(["$1"], [
 cat >$1<<'_ATEOF'
-DAS_DATA_M4SH([$2])
+DAS_DATA_ALLOW([$2])
 _ATEOF
 ])
 # HAS_STR
 ])
 #DAS_DATA
 
-# DAS_COMPILE_M4([FLAGS], [INCLUDE], BODY])
+# DAS_COMPILE_M4(FILEBASE, [FLAGS], [INCLUDE], BODY, [IF-SUCC], [IF-FAIL])
 # ------------------------------------------
-# Compile m4 code spinet.
+# Create m4 code spinet file FILEBASE.m4 and compile it.
 m4_defun([DAS_COMPILE_M4],
 [
-(#subshell local vars
-	AS_VAR_SET([m4file], [testm4])
-	DAS_DATA([$m4file.m4],
+	DAS_DATA([$1.m4],
 	[
-$2
-m4_init
 $3
+m4_init
+$4
 	])
 	#DAS_DATA
 
-	# test to avoid side-effect of m4 divert_push/pop
-	DAS_VAR_IFNOT([m4file], [],
-	[
-		autom4te --language=m4sugar $1 --force -Wall $m4file.m4 -o $m4file
-		AS_VAR_SET([code], [$?])
-		rm -f $m4file $m4file.m4
-	])
-	# AS_VAR_IF test m4file
-)
+	autom4te --language=m4sugar $2 --force -Wall $1.m4 -o $1
+	das_compile_status=$?
+	AS_IF([test $das_compile_status -eq 0], [$5], [$6])
 ])
-#das_fn_compile_m4
+# DAS_COMPILE_M4
 
-# DAS_COMPILE_M4SH([FLAGS], [INCLUDE], BODY])
+# DAS_COMPILE_M4SH(FILEBASE, [FLAGS], [INCLUDE], BODY, [IF-SUCC], [IF-FAIL])
 # ------------------------------------------
-# Compile m4sh code spinet.
+# Create m4sh code spinet file FILEBASE.as and compile it.
 m4_defun([DAS_COMPILE_M4SH],
 [
-(#subshell local vars
-	AS_VAR_SET([m4shfile], [testm4sh])
-	DAS_DATA([$m4shfile.as],
+	DAS_DATA([$1.as],
 	[
-$2
+$3
 AS_INIT
 # Exit-status, default to 0: succ. You may re-set it to
 # your own status value during in BODY, so AS_EXIT could
 # emit your value.
 AS_VAR_SET([m4shcode], [0])
-$3
+$4
 AS_EXIT([$m4shcode])
 	])
 	#DAS_DATA
 
-	autom4te --language=m4sh $1 --force -Wall $m4shfile.as -o $m4shfile
-	AS_VAR_SET([code], [$?])
-	rm -f $m4shfile $m4shfile.as
-)
+	autom4te --language=m4sh $2 --force -Wall $1.as -o $1
+	das_compile_status=$?
+	AS_IF([test $das_compile_status -eq 0], [$5], [$6])
 ])
-#das_fn_compile_m4sh
+# DAS_COMPILE_M4SH
+
+# DAS_COMPILE(FILEBASE, [FLAGS], [INCLUDE], BODY, [IF-SUCC], [IF-FAIL])
+# --------------------------------------------
+# Create C code spinet file FILEBASE.c and compile it.
+m4_defun([DAS_COMPILE],
+[
+	DAS_DATA([$1.c],
+	[
+$3
+int main(void)
+{
+$4
+	return 0;
+}
+	])
+	#DAS_DATA
+
+	$CC $CPPFLAGS $CFLAGS $LDFLAGS -Wall -O3 $2 -o $1 $1.c
+	das_compile_status=$?
+	AS_IF([test $das_compile_status -eq 0], [$5], [$6])
+])
+# DAS_COMPILE
+
+# DAS_COMPILE_CXX(FILEBASE, [FLAGS], [INCLUDE], BODY, [IF-SUCC], [IF-FAIL])
+# --------------------------------------------
+# Create C++ code spinet file FILEBASE.c and compile it.
+m4_defun([DAS_COMPILE_CXX],
+[
+	DAS_DATA([$1.cpp],
+	[
+$3
+int main(void)
+{
+$4
+	return 0;
+}
+	])
+	#DAS_DATA
+
+	$CXX $CPPFLAGS $CXXFLAGS $LDFLAGS -Wall -O3 $2 -o $1 $1.cpp
+	das_compile_status=$?
+	AS_IF([test $das_compile_status -eq 0], [$5], [$6])
+])
+# DAS_COMPILE_CXX
 

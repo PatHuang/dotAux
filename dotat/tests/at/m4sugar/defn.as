@@ -6,32 +6,40 @@ AS_INIT
 # Ensure that m4sugar dies when dereferencing undefined macros, whether
 # this is provided by m4 natively or faked by wrappers in m4sugar.
 
-DAS_COMPILE_M4([],[],
+DAS_COMPILE_M4([m4test], [],[],
 [[
 	m4_define([good])
 	m4_defn([good], [oops])
-]])
+]],
+[],[AS_ERROR([code=$das_compile_status])]
+)
 
-DAS_COMPILE_M4([],[],
+DAS_COMPILE_M4([m4test], [],[],
 [[
 	m4_define([good])
 	m4_popdef([good], [oops])
-]])
+]],
+[],[AS_ERROR([code=$das_compile_status])]
+)
 
-DAS_COMPILE_M4([],[],
+DAS_COMPILE_M4([m4test], [],[],
 [[
 	m4_define([good])
 	m4_undefine([good], [oops])
-]])
+]],
+[],[AS_ERROR([code=$das_compile_status])]
+)
 
 # Cannot rename an undefined macro.
-DAS_COMPILE_M4([],[],
+DAS_COMPILE_M4([m4test], [],[],
 [[
 	m4_rename([oops], [good])
-]])
+]],
+[],[AS_ERROR([code=$das_compile_status])]
+)
 
 # Check that pushdef stacks can be renamed.
-DAS_COMPILE_M4([],[],
+DAS_COMPILE_M4([m4test], [],[],
 [[
 m4_pushdef([a], [1])dnl
 m4_pushdef([a], [2])dnl
@@ -66,7 +74,11 @@ a 1 1
 a b c
 d 4 4
 d e f
-]])dnl DAS_COMPILE_M4
+]],
+[],[AS_ERROR([code=$das_compile_status])]
+)
+
+rm -f m4test m4test.m4
 
 AS_EXIT
 

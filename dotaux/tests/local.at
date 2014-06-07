@@ -50,7 +50,3 @@ m4_include([dmeta/dat.m4])
 m4_define([DAT_MYLIBDIR], [$abs_top_srcdir/dotaux])
 #------------------------
 
-DAT_SHELL_FN
-
-DAS_INTRO_SELF([1.0])
-

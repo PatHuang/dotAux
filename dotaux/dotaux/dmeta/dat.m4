@@ -108,6 +108,8 @@ dat_fn_env()
 }
 #DAT_ENV
 
+# -------------------
+
 ])
 #DAT_SHELL_FN
 
@@ -142,20 +144,20 @@ m4_defun([DAT_CHK_AUTOM4TE],
 ])
 #DAT_CHK_AUTOM4TE
 
-# DAT_DATA_M4SH(FILE-NAME, CONTENTS)
+# DAT_DATA_M4SH(FILE-NAME, CONTENTS) --obsolete
 # ---------------------------------
 # Escape the invalid tokens with @&t@.
 m4_defun([DAT_DATA_M4SH],
 [
 AT_DATA([$1],
 [
-DAS_DATA_M4SH([$2])
+DAS_DATA_ALLOW([$2])
 ])
 #AT_DATA
 ])
 #DAT_DATA_M4SH
 
-# DAT_CHK_M4SH(FLAGS, [EXIT-STATUS = 0], STDOUT, STDERR)
+# DAT_CHK_M4SH(FLAGS, [EXIT-STATUS = 0], STDOUT, STDERR) --obsolete
 # -------------------------------------------------------
 m4_defun([DAT_CHK_M4SH],
 [

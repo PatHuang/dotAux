@@ -1,5 +1,5 @@
 #! /bin/sh
-# Generated from /home/pat/dotaux/pkgs/dotaux/bin/dotaux.as by GNU Autoconf 2.68.
+# Generated from /home/pat/dotaux/pkgs/dotaux/bin/dadlm.as by GNU Autoconf 2.68.
 ## -------------------- ##
 ## M4sh Initialization. ##
 ## -------------------- ##
@@ -312,6 +312,24 @@ as_fn_exit ()
   as_fn_set_status $1
   exit $1
 } # as_fn_exit
+# as_fn_append VAR VALUE
+# ----------------------
+# Append the text in VALUE to the end of the definition contained in VAR. Take
+# advantage of any shell optimizations that allow amortized linear growth over
+# repeated appends, instead of the typical quadratic growth present in naive
+# implementations.
+if (eval "as_var=1; as_var+=2; test x\$as_var = x12") 2>/dev/null; then :
+  eval 'as_fn_append ()
+  {
+    eval $1+=\$2
+  }'
+else
+  as_fn_append ()
+  {
+    eval $1=\$$1\$2
+  }
+fi # as_fn_append
+
 
 # as_fn_error STATUS ERROR
 # ------------------------
@@ -380,66 +398,29 @@ as_cr_alnum=$as_cr_Letters$as_cr_digits
 as_tr_sh="eval sed 'y%*+%pp%;s%[^_$as_cr_alnum]%_%g'"
 
 
-as_awk_strverscmp='
-  # Use only awk features that work with 7th edition Unix awk (1978).
-  # My, what an old awk you have, Mr. Solaris!
-  END {
-    while (length(v1) && length(v2)) {
-      # Set d1 to be the next thing to compare from v1, and likewise for d2.
-      # Normally this is a single character, but if v1 and v2 contain digits,
-      # compare them as integers and fractions as strverscmp does.
-      if (v1 ~ /^[0-9]/ && v2 ~ /^[0-9]/) {
-	# Split v1 and v2 into their leading digit string components d1 and d2,
-	# and advance v1 and v2 past the leading digit strings.
-	for (len1 = 1; substr(v1, len1 + 1) ~ /^[0-9]/; len1++) continue
-	for (len2 = 1; substr(v2, len2 + 1) ~ /^[0-9]/; len2++) continue
-	d1 = substr(v1, 1, len1); v1 = substr(v1, len1 + 1)
-	d2 = substr(v2, 1, len2); v2 = substr(v2, len2 + 1)
-	if (d1 ~ /^0/) {
-	  if (d2 ~ /^0/) {
-	    # Compare two fractions.
-	    while (d1 ~ /^0/ && d2 ~ /^0/) {
-	      d1 = substr(d1, 2); len1--
-	      d2 = substr(d2, 2); len2--
-	    }
-	    if (len1 != len2 && ! (len1 && len2 && substr(d1, 1, 1) == substr(d2, 1, 1))) {
-	      # The two components differ in length, and the common prefix
-	      # contains only leading zeros.  Consider the longer to be less.
-	      d1 = -len1
-	      d2 = -len2
-	    } else {
-	      # Otherwise, compare as strings.
-	      d1 = "x" d1
-	      d2 = "x" d2
-	    }
-	  } else {
-	    # A fraction is less than an integer.
-	    exit 1
-	  }
-	} else {
-	  if (d2 ~ /^0/) {
-	    # An integer is greater than a fraction.
-	    exit 2
-	  } else {
-	    # Compare two integers.
-	    d1 += 0
-	    d2 += 0
-	  }
-	}
-      } else {
-	# The normal case, without worrying about digits.
-	d1 = substr(v1, 1, 1); v1 = substr(v1, 2)
-	d2 = substr(v2, 1, 1); v2 = substr(v2, 2)
-      }
-      if (d1 < d2) exit 1
-      if (d1 > d2) exit 2
-    }
-    # Beware Solaris /usr/xgp4/bin/awk (at least through Solaris 10),
-    # which mishandles some comparisons of empty strings to integers.
-    if (length(v2)) exit 1
-    if (length(v1)) exit 2
-  }
-'
+if test -x / >/dev/null 2>&1; then
+  as_test_x='test -x'
+else
+  if ls -dL / >/dev/null 2>&1; then
+    as_ls_L_option=L
+  else
+    as_ls_L_option=
+  fi
+  as_test_x='
+    eval sh -c '\''
+      if test -d "$1"; then
+	test -d "$1/.";
+      else
+	case $1 in #(
+	-*)set "./$1";;
+	esac;
+	case `ls -ld'$as_ls_L_option' "$1" 2>/dev/null` in #((
+	???[sx]*):;;*)false;;esac;fi
+    '\'' sh
+  '
+fi
+as_executable_p=$as_test_x
+
 ## -------------------- ##
 ## Main body of script. ##
 ## -------------------- ##
@@ -851,7 +832,7 @@ das_fn_chkctx
 
 	# hope nobody else uses das_def_*
 
-	das_def_myversion="0.1.0.8"
+	das_def_myversion="0.1.0.4"
 
 
 # usage
@@ -865,10 +846,13 @@ usage()
   -a[da_folder]|--aux=da_folder
                           da_folder: Your local dotAux folder to store stuff
                           from dotAux distro
-  -c|--clean              function clean, clear all and clear autotools
-                          generated files such as aclocal, etc. If not
-                          specified, default function is setup, to setup
-                          initial dotAux folder.
+  -d[dlm_folder]|--dolem=dlm_folder
+                          dlm_folder: Your local Dolem folder to store stuff
+                          from Dolem and gnulib
+  -c|--clean              function clean, call dotAux's clean, and clear Dolem
+                          and gnulib, etc. If not specified, default function
+                          is setup, call dotAux's setup and import Dolem and
+                          gnulib.
   -k[namelist]|--keep=namelist
                           namelist: Dont' clear files or folders in namelist
                           which looks like \"name1,name2,name3...\"
@@ -879,7 +863,7 @@ usage()
 
 	# hope nobody else uses das_def_*
 
-	das_def_opts="`getopt -o hVa:k:c -l help -l version -l aux: -l keep: -l clean -- "$@"`"
+	das_def_opts="`getopt -o hVa:d:k:c -l help -l version -l aux: -l dolem: -l keep: -l clean -- "$@"`"
 
 
 	# hope nobody else uses das_def_*
@@ -895,9 +879,6 @@ usage()
 fi
 
 
-
-
-
 eval set -- "$das_def_opts"
 
 # Default dotAux folder
@@ -906,6 +887,12 @@ eval set -- "$das_def_opts"
 
 	das_def_da_folder="dotaux"
 
+# Default Dolem folder
+
+	# hope nobody else uses das_def_*
+
+	das_def_dlm_folder="dolem"
+
 
 	# hope nobody else uses das_def_*
 
@@ -913,8 +900,8 @@ eval set -- "$das_def_opts"
 
 # Default function - setup
 # Available functions:
-# setup, setup dotAux
-# clean, clear all and clear autotools generated files such as aclocal, etc.
+# setup, call dotAux's setup and import Dolem and gnulib.
+# clean, call dotAux's clean, and clear Dolem and gnulib, etc.
 
 	# hope nobody else uses das_def_*
 
@@ -930,6 +917,8 @@ do
     $as_echo "$das_def_myversion"; as_fn_exit $? ;; #(
   -a|--aux) :
     das_def_da_folder=$2; shift 2 ;; #(
+  -a|--dolem) :
+    das_def_dlm_folder=$2; shift 2 ;; #(
   -k|--keep) :
     das_def_kp_namelist=$2; shift 2 ;; #(
   -c|--clean) :
@@ -951,11 +940,11 @@ done
 	$as_echo "I'm $das_me (v$das_def_myversion) on $das_myloc, working on $das_pwd!"
 
 
-# Test if package dotAux or otherwise
+# My Magic
 
-	if ! test -f "configure.ac"; then :
+	if ! test -f "$das_def_dlm_folder/gl.conf"; then :
 
-	as_fn_error $? "configure.ac not found. Looks it isn't a Source folder, abort..."
+	as_fn_error $? "$das_def_dlm_folder/gl.conf not found, you need to specify gnulib source path in it. abort..."
 
 fi
 
@@ -963,31 +952,6 @@ fi
 	# hope nobody else uses das_def_*
 
 	das_def_metadir="$das_def_da_folder/dmeta"
-
-
-# Test dotAux if exists. Our Magic
-if test -f "$das_def_metadir/da.conf"; then :
-
-	if test "x$das_def_fn" = xsetup; then :
-
-		$as_echo "$as_me: WARNING: dotAux already exists. Will do a reset" >&2
-
-fi
-
-else
-
-
-	if test "x$das_def_fn" = xsetup; then :
-
-else
-
-		as_fn_error $? "$das_def_metadir/da.conf not found"
-
-fi
-
-
-fi
-# AS_IF
 
 
 	# hope nobody else uses das_def_*
@@ -999,136 +963,156 @@ fi
 
 # do_copy
 # -------
-# Copy myself and meta data.
+# Copy stuff.
 do_copy()
 {
-	$as_echo "$as_me: Copy myself..." >&1
-	cp -f "$das_myself" "$das_def_da_folder"/
-	cp -f "$das_myloc/damk" "$das_def_da_folder"/
-	cp -f "$das_myloc/daln" "$das_def_da_folder"/
-	cp -f "$das_myloc/dadlm" "$das_def_da_folder"/
-	$as_echo "$as_me: Testing $das_def_da_folder/$das_me..." >&1
-	das_def_opts=`./"$das_def_da_folder"/$das_me --version`
-	$as_echo "$as_me: Compare version \"$das_def_opts\" and \"$das_def_myversion\"..." >&1
-	as_arg_v1=$das_def_opts
-as_arg_v2=$das_def_myversion
-awk "$as_awk_strverscmp" v1="$as_arg_v1" v2="$as_arg_v2" /dev/null
-case $? in #(
-  1) :
-    das_def_opts="<" ;; #(
-  0) :
-    das_def_opts="=" ;; #(
-  2) :
-    das_def_opts=">" ;; #(
-  *) :
-     ;;
-esac
-
-	if test "x$das_def_opts" = x=; then :
-
-else
-
-		as_fn_error $? "Test \"$das_def_da_folder/$das_me\" FAIL"
-
-fi
-
-	$as_echo "$as_me: Copy metadata..." >&1
+	$as_echo "$as_me: Copy and import..." >&1
 (#subshell local vars
-	if test -f "$das_myloc/../share/dotaux/dmeta/das.m4"; then :
+	sbase=$das_def_dlm_folder/lib
+	mbase=$das_def_dlm_folder/m4
+	dbase=$das_def_dlm_folder/doc
+	tbase=$das_def_dlm_folder/tests
 
-		path="$das_myloc/../share/dotaux/"
 
-elif test -f "$das_myloc/../dotaux/dmeta/das.m4"; then :
+	if ! test -d "$mbase"; then :
 
-		path="$das_myloc/../dotaux/"
+		as_dir=$sbase; as_fn_mkdir_p
+		as_dir=$mbase; as_fn_mkdir_p
+
+fi
+
+
+	glimport=`das_fn_file_parse_value $das_def_dlm_folder/gl.conf "SRC" "="`
+	as_fn_append glimport /gnulib-tool
+	if ! { test -f $glimport && $as_test_x $glimport; }; then :
+
+		as_fn_error $? "Seems $glimport is not executable or doens't exist, abort..."
+
+fi
+	das_def_opts=`das_fn_file_parse_value $das_def_dlm_folder/gl.conf "LICENSE" "="`
+
+	if test x"$das_def_opts" != x; then :
+
+		as_fn_append glimport " --$das_def_opts"
+
+fi
+
+	das_def_opts=`das_fn_file_parse_value $das_def_dlm_folder/gl.conf "LIBNAME" "="`
+	if test x"$das_def_opts" != x; then :
+
+		as_fn_append glimport " --lib=lib$das_def_opts"
 
 else
 
-		as_fn_error $? "Cannot determine dotAux lib path."
+		as_fn_append glimport " --lib=libdolem"
 
 fi
-	# AS_IF
-	$as_echo "$as_me: Determined dotAux lib path '$path'." >&1
-	cp -f "$path/ext/tap-driver.sh" "$das_def_da_folder"/
-	cp -f "$path/dmeta/das.m4" "$das_def_metadir"/
-	cp -f "$path/dmeta/dac.m4" "$das_def_metadir"/
-	cp -f "$path/dmeta/dat.m4" "$das_def_metadir"/
+	as_fn_append glimport " --no-vc-files --libtool --import --source-base=$sbase --m4-base=$mbase --doc-base=$dbase --tests-base=$tbase"
+	das_def_opts=`das_fn_file_parse_value $das_def_dlm_folder/gl.conf "MOD_LIST" "="`
+
+	if ! test -f "$das_def_opts"; then :
+
+		if test -f $das_def_dlm_folder/$das_def_opts; then :
+
+			das_def_opts=$das_def_dlm_folder/$das_def_opts
+
+else
+
+			as_fn_error $? "Seems gnulib module list '$das_def_opts' or $das_def_dlm_folder/$das_def_opts doens't exist, abort..."
+
+fi
+
+fi
+
+	$glimport "`cat $das_def_opts`"
+
+	# ----GPL Modules----
+	# assert
+
 )
-	$as_echo "$as_me: Prepared dotAux folder with meta subfolder: $das_def_metadir" >&1
+	$as_echo "$as_me: gnulib imported" >&1
+
+	$as_echo "$as_me: Now if you need to install gnulib headers and library, update gnulib generated makefile as the following:" >&1
+	$as_echo "$as_me:   1. Change line \"noinst_LTLIBRARIES += libgnu.la\" to \"lib_LTLIBRARIES = libgnu.la\"." >&1
+	$as_echo "$as_me:   2. Add two lines after _la_SOURCES:" >&1
+	$as_echo "$as_me:       pkgincludedir = $(includedir)/dolem/gl" >&1
+	$as_echo "$as_me:       EXTRA_HEADERS = " >&1
+	$as_echo "$as_me:   NOTE: Above are just the examples, use your own lib name and header include dir." >&1
+	$as_echo "$as_me:   3. Add a line after the last \"BUILT_SOURCES += XXXX\":" >&1
+	$as_echo "$as_me:       nobase_pkginclude_HEADERS = $(BUILT_SOURCES)" >&1
 }
 # do_copy
 
-# clear_da
-# --------
-# Clear da_folder.
-clear_da()
+# clear_dlm
+# ---------
+# Clear dlm_folder.
+clear_dlm()
 {
 (#subshell local vars
-	found=`	$as_echo "$das_def_kp_namelist" | sed -n "/$das_def_da_folder/ p" `
+	found=`	$as_echo "$das_def_kp_namelist" | sed -n "/$das_def_dlm_folder/ p" `
 	if test x"$found" != x; then :
 
-		$as_echo "$as_me: Keep $das_def_da_folder" >&1
-		cp -rf $das_def_da_folder $das_def_da_folder.tmp
-		rm -rf $das_def_da_folder/*
-		mv -f $das_def_da_folder.tmp/dmeta $das_def_da_folder/
-		mv -f $das_def_da_folder.tmp/tap-driver.sh $das_def_da_folder/
-		mv -f $das_def_da_folder.tmp/$das_me $das_def_da_folder/
-		mv -f $das_def_da_folder.tmp/damk $das_def_da_folder/
-		mv -f $das_def_da_folder.tmp/daln $das_def_da_folder/
-		mv -f $das_def_da_folder.tmp/dadlm $das_def_da_folder/
-
-		rm -rf $das_def_da_folder.tmp
+		$as_echo "$as_me: Keep $das_def_dlm_folder" >&1
 
 else
 
-		$as_echo "$as_me: Don't keep $das_def_da_folder" >&1
-		rm -rf $das_def_da_folder
+		$as_echo "$as_me: Don't keep $das_def_dlm_folder" >&1
+		sbase=$das_def_dlm_folder/lib
+		mbase=$das_def_dlm_folder/m4
+		dbase=$das_def_dlm_folder/doc
+		tbase=$das_def_dlm_folder/tests
+		rm -rf $sbase $mbase $dbase $tbase
 
 fi
 	# AS_IF
 )
 }
-# clear_da
+# clear_dlm
 
 case $das_def_fn in #(
   setup) :
 
 	$as_echo "$as_me: Function is setup..." >&1
-	# Test and create da_folder
-	das_fn_chkdir "$das_def_metadir"
-	do_copy
+	# call dotAux
+	if { test -f $das_myloc/dotaux && $as_test_x $das_myloc/dotaux; }; then :
 
-	$as_echo "$as_me: Testing local include path $das_pwd/$das_def_da_folder..." >&1
+$das_myloc/dotaux
 
-	if ! test -d "$das_pwd/$das_def_da_folder"; then :
+fi
+	das_def_code=$?
 
-		$as_echo "$as_me: WARNING: local include path $das_pwd/$das_def_da_folder not exist?" >&2
+	if test x"$das_def_code" != x"0"; then :
+
+		as_fn_error $? "Seems dotAux failed with das_def_code $das_def_code, abort..."
 
 fi
 
-	#AS_ECHO(["FLAGS = -I $das_pwd/$da_folder"]) >$metadir/da.conf
-	$as_echo "VPATH = 1" >$das_def_metadir/da.conf
-	$as_echo "$as_me: Environment like local include path of dotAux lib such as m4, etc, and options, are stored in $das_def_metadir/da.conf" >&1
+
+	do_copy
  ;; #(
   clean) :
 
 	$as_echo "$as_me: Function is clean..." >&1
+	clear_dlm
 
-	if test -f "Makefile"; then :
-  make clean; make distclean
+	# call dotAux
+	if test x"$das_def_kp_namelist" = x; then :
+
+$das_myloc/dotaux -c
+
+else
+
+$das_myloc/dotaux -c -k"$das_def_kp_namelist"
+
+fi
+	das_def_code=$?
+
+	if test x"$das_def_code" != x"0"; then :
+
+		as_fn_error $? "Seems dotAux failed with das_def_code $das_def_code, abort..."
+
 fi
 
-	clear_da
-
-	# clear generated stuff by autotools
-	rm -f aclocal.m4 configure >/dev/null 2>&1
-	rm -rf autom4te.cache >/dev/null 2>&1
-	rm -f autoscan.log configure.scan config.h.in~ configure.ac~
-	find . -name "Makefile.in" -exec rm -f {} \;
-	# clear dist package
-	rm -rf $das_def_myclient-*
-	# clear dist and build dir
-	rm -rf inst build
 	# Log file
 	das_def_opts=$das_pwd/../dotaux.log
  ;; #(
@@ -1137,6 +1121,12 @@ fi
 	as_fn_error $? "Unknown function $das_def_fn"
  ;;
 esac
+
+
+
+
+
+
 
 
 

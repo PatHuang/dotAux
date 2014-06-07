@@ -125,5 +125,5 @@ GENSCRIPT = autom4te --language=m4sh --force -Wall
 GENSCRIPT_FLAGS = $(ACLOCAL_AMFLAGS)
 
 $(EXTRA_SCRIPTS):
-	$(GENSCRIPT) $(GENSCRIPT_FLAGS) $(TEST_SRCDIR)/$@.as -o $@
+	$(AM_V_GEN) $(GENSCRIPT) $(GENSCRIPT_FLAGS) $(TEST_SRCDIR)/$@.as -o $@
 

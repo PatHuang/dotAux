@@ -88,7 +88,7 @@ rm -rf test
 ## LINENO stack support.  ##
 ## ---------------------- ##
 
-DAS_COMPILE_M4SH([], [],
+DAS_COMPILE_M4SH([m4shtest], [], [],
 [[
 AS_LINENO_PUSH([9999])
 test $as_lineno = 9999 || AS_ERROR([bad as_lineno at depth 1])
@@ -98,7 +98,11 @@ AS_LINENO_POP
 test $as_lineno = 9999 || AS_ERROR([bad as_lineno at depth 1])
 AS_LINENO_POP
 test x${as_lineno+set} = xset && AS_ERROR([as_lineno set at depth 0])
-]])dnl DAS_COMPILE_M4SH
+]],
+[],[AS_ERROR([code=$das_compile_status])]
+)
+
+rm -f m4shtest m4shtest.as
 
 AS_EXIT
 

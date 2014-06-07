@@ -654,7 +654,7 @@ das_fn_chkdir()
 (#subshell local vars
 	dname=$1
 
-	if test -f ""$dname""; then :
+	if test -f "$dname"; then :
 
 		as_fn_error $? "\"$dname\" exists as a file! Exit ..."
 
@@ -662,7 +662,7 @@ fi
 
 	# HAS_FILE
 
-	if ! test -d ""$dname""; then :
+	if ! test -d "$dname"; then :
 
 		as_dir=$dname; as_fn_mkdir_p
 
@@ -670,7 +670,7 @@ fi
 
 	# NO_DIR
 
-	if ! test -d ""$dname""; then :
+	if ! test -d "$dname"; then :
 
 		as_fn_error $? "\"$dname\" required but seems failed to create it. Exit..."
 
@@ -712,9 +712,7 @@ das_fn_str_parse_value()
 		delim=:
 
 fi
-	str=`
-		$as_echo "$1" | sed -n "s/^""$2"" \{0,1\}:\{0,1\}""$3"":\{0,1\} \{0,1\}\(.*\)/\1/p"
-`
+	str=`		$as_echo "$1" | sed -n "s/^""$2"" \{0,1\}:\{0,1\}""$3"":\{0,1\} \{0,1\}\(.*\)/\1/p" `
 	das_fn_str_trim "$str"
 )
 }
@@ -739,9 +737,7 @@ das_fn_file_parse_value()
 		delim=:
 
 fi
-	val=`
-			sed -n "/^""$2"" \{0,1\}:\{0,1\}""$3"":\{0,1\} \{0,1\}/ {p;q;}" "$1"
-`
+	val=`			sed -n "/^""$2"" \{0,1\}:\{0,1\}""$3"":\{0,1\} \{0,1\}/ {p;q;}" "$1" `
 	das_fn_str_parse_value "$val" "$key" "$delim"
 )
 }
@@ -774,13 +770,88 @@ fi
 }
 # das_fn_dir_file_list
 
+# --------------------------
+# das_fn_str_field_count STR, Delim
+# ---------------------------------
+# Get cound of fields in the string STR. Per "4:3:2:1", the delimiter is ":",
+# count is 4. Defalt delim is space ' '.
+das_fn_str_field_count()
+{
+(#subshell local vars
+	str="$1"
+	delim="$2"
+	if ${delim:+false} :; then :
+
+		# fall back to default delim ' '
+		delim=
+
+fi
+
+	$as_echo "$str" | awk -F '"$delim"' '{print NF}'
+)
+}
+# das_fn_str_field_count
+
+# --------------------------
+# das_fn_str_get_field STR, INDEX, Delim
+# --------------------------------------
+# Get a specific field in the string STR. Per "4:3:2:1", index starts from 1;
+# get_field(2) returns "3". Defalt delim is space ' '.
+das_fn_str_get_field()
+{
+(#subshell local vars
+	str="$1"
+	index="$2"
+	delim="$3"
+	if ${delim:+false} :; then :
+
+		# fall back to default delim ' '
+		delim=
+
+fi
+
+	$as_echo "$str" | awk -F '"$delim"' '{print $'"$index"'}'
+)
+}
+# das_fn_str_get_field
+
 # -------------------
+# das_fn_chkctx
+# -------------
+# Check execution context
+das_fn_chkctx()
+{
+	das_ctx=0
+	das_ctx=1
+
+
+	# FIXME if not gcc/g++, see AC_PROG_CC code for reference
+	if test "x$das_ctx" = x3; then :
+
+
+	if test x"$CC" = x; then :
+  CC=gcc
+fi
+
+
+	if test x"$CXX" = x; then :
+  CXX=g++
+fi
+
+
+fi
+}
+# das_fn_chkctx
+
+# -------------------
+das_fn_chkctx
+
 
 
 
 	# hope nobody else uses das_def_*
 
-	das_def_myversion="0.1.0.6"
+	das_def_myversion="0.1.0.8"
 
 
 # usage
@@ -798,6 +869,9 @@ usage()
                           generated files such as aclocal, etc. If not
                           specified, default function is setup, to setup
                           initial dotAux folder.
+  -k[namelist]|--keep=namelist
+                          namelist: Dont' clear files or folders in namelist
+                          which looks like \"name1,name2,name3...\"
 	" >&1
 	# AS_MESSAGE
 }
@@ -805,7 +879,7 @@ usage()
 
 	# hope nobody else uses das_def_*
 
-	das_def_opts="`getopt -o hVa:c -l help -l version -l aux: -l clean -- "$@"`"
+	das_def_opts="`getopt -o hVa:k:c -l help -l version -l aux: -l keep: -l clean -- "$@"`"
 
 
 	# hope nobody else uses das_def_*
@@ -832,6 +906,11 @@ eval set -- "$das_def_opts"
 
 	das_def_da_folder="dotaux"
 
+
+	# hope nobody else uses das_def_*
+
+	das_def_kp_namelist=""
+
 # Default function - setup
 # Available functions:
 # setup, setup dotAux
@@ -851,6 +930,8 @@ do
     $as_echo "$das_def_myversion"; as_fn_exit $? ;; #(
   -a|--aux) :
     das_def_da_folder=$2; shift 2 ;; #(
+  -k|--keep) :
+    das_def_kp_namelist=$2; shift 2 ;; #(
   -c|--clean) :
     das_def_fn=clean; shift ;; #(
   --) :
@@ -915,15 +996,17 @@ fi
 	das_fn_basename "$(pwd)"
 `"
 
-case $das_def_fn in #(
-  setup) :
 
-	$as_echo "$as_me: Function is setup..." >&1
-	# Test and create da_folder
-	das_fn_chkdir "$das_def_metadir"
+# do_copy
+# -------
+# Copy myself and meta data.
+do_copy()
+{
 	$as_echo "$as_me: Copy myself..." >&1
 	cp -f "$das_myself" "$das_def_da_folder"/
 	cp -f "$das_myloc/damk" "$das_def_da_folder"/
+	cp -f "$das_myloc/daln" "$das_def_da_folder"/
+	cp -f "$das_myloc/dadlm" "$das_def_da_folder"/
 	$as_echo "$as_me: Testing $das_def_da_folder/$das_me..." >&1
 	das_def_opts=`./"$das_def_da_folder"/$das_me --version`
 	$as_echo "$as_me: Compare version \"$das_def_opts\" and \"$das_def_myversion\"..." >&1
@@ -950,11 +1033,70 @@ else
 fi
 
 	$as_echo "$as_me: Copy metadata..." >&1
-	cp -f "$das_myloc/../share/dotaux/ext/tap-driver.sh" "$das_def_da_folder"/
-	cp -f "$das_myloc/../share/dotaux/ext/ax_prefix_config_h.m4" "$das_def_da_folder"/
-	cp -f "$das_myloc/../share/dotaux/dmeta/das.m4" "$das_def_metadir"/
-	cp -f "$das_myloc/../share/dotaux/dmeta/dat.m4" "$das_def_metadir"/
+(#subshell local vars
+	if test -f "$das_myloc/../share/dotaux/dmeta/das.m4"; then :
+
+		path="$das_myloc/../share/dotaux/"
+
+elif test -f "$das_myloc/../dotaux/dmeta/das.m4"; then :
+
+		path="$das_myloc/../dotaux/"
+
+else
+
+		as_fn_error $? "Cannot determine dotAux lib path."
+
+fi
+	# AS_IF
+	$as_echo "$as_me: Determined dotAux lib path '$path'." >&1
+	cp -f "$path/ext/tap-driver.sh" "$das_def_da_folder"/
+	cp -f "$path/dmeta/das.m4" "$das_def_metadir"/
+	cp -f "$path/dmeta/dac.m4" "$das_def_metadir"/
+	cp -f "$path/dmeta/dat.m4" "$das_def_metadir"/
+)
 	$as_echo "$as_me: Prepared dotAux folder with meta subfolder: $das_def_metadir" >&1
+}
+# do_copy
+
+# clear_da
+# --------
+# Clear da_folder.
+clear_da()
+{
+(#subshell local vars
+	found=`	$as_echo "$das_def_kp_namelist" | sed -n "/$das_def_da_folder/ p" `
+	if test x"$found" != x; then :
+
+		$as_echo "$as_me: Keep $das_def_da_folder" >&1
+		cp -rf $das_def_da_folder $das_def_da_folder.tmp
+		rm -rf $das_def_da_folder/*
+		mv -f $das_def_da_folder.tmp/dmeta $das_def_da_folder/
+		mv -f $das_def_da_folder.tmp/tap-driver.sh $das_def_da_folder/
+		mv -f $das_def_da_folder.tmp/$das_me $das_def_da_folder/
+		mv -f $das_def_da_folder.tmp/damk $das_def_da_folder/
+		mv -f $das_def_da_folder.tmp/daln $das_def_da_folder/
+		mv -f $das_def_da_folder.tmp/dadlm $das_def_da_folder/
+
+		rm -rf $das_def_da_folder.tmp
+
+else
+
+		$as_echo "$as_me: Don't keep $das_def_da_folder" >&1
+		rm -rf $das_def_da_folder
+
+fi
+	# AS_IF
+)
+}
+# clear_da
+
+case $das_def_fn in #(
+  setup) :
+
+	$as_echo "$as_me: Function is setup..." >&1
+	# Test and create da_folder
+	das_fn_chkdir "$das_def_metadir"
+	do_copy
 
 	$as_echo "$as_me: Testing local include path $das_pwd/$das_def_da_folder..." >&1
 
@@ -976,15 +1118,7 @@ fi
   make clean; make distclean
 fi
 
-	# clear da_folder
-	cp -rf $das_def_da_folder $das_def_da_folder.tmp
-	rm -rf $das_def_da_folder/*
-	mv -f $das_def_da_folder.tmp/dmeta $das_def_da_folder/
-	mv -f $das_def_da_folder.tmp/tap-driver.sh $das_def_da_folder/
-	mv -f $das_def_da_folder.tmp/ax_prefix_config_h.m4 $das_def_da_folder/
-	mv -f $das_def_da_folder.tmp/$das_me $das_def_da_folder/
-
-	rm -rf $das_def_da_folder.tmp
+	clear_da
 
 	# clear generated stuff by autotools
 	rm -f aclocal.m4 configure >/dev/null 2>&1
